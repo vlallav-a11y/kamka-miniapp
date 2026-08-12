@@ -184,7 +184,11 @@ el('poizonOrderButton').addEventListener('click', async () => {
   const yuan = Number(el('poizonPrice').value) || 0;
   const weight = Number(el('poizonWeight').value) || 0;
   const deliveryRate = Number(el('poizonDelivery').value) || 0;
- 
+ const telegram = el('poizonTelegram').value.trim();
+  if (!telegram) {
+  el('poizonOrderStatus').textContent = 'Укажите ваш Telegram';
+  return;
+}
 
   if (!yuan || !weight) {
     el('poizonOrderStatus').textContent = 'Укажите стоимость товара и вес.';

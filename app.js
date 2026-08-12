@@ -17,7 +17,10 @@ const cart = [];
 
 const el = id => document.getElementById(id);
 const ADMIN_TELEGRAM_ID = 1023844365;
-const currentTelegramId = tg?.initDataUnsafe?.user?.id;
+
+const currentTelegramId = Number(tg?.initDataUnsafe?.user?.id || 0);
+
+console.log('MY TELEGRAM ID:', currentTelegramId);
 
 if (currentTelegramId === ADMIN_TELEGRAM_ID) {
   el('adminSectionBtn')?.classList.remove('hidden');

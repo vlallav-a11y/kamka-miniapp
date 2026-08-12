@@ -490,4 +490,121 @@ adminAddProductBtn?.addEventListener('click', async () => {
     console.error(err);
     el('adminStatus').textContent = 'Ошибка: ' + err.message;
   }
+const adminAddProductBtn = el('adminAddProductBtn');
+
+adminAddProductBtn?.addEventListener('click', async () => {
+  const brand = el('adminBrand')?.value.trim();
+  const name = el('adminName')?.value.trim();
+  const category = el('adminCategory')?.value;
+  const price = Number(el('adminPrice')?.value || 0);
+  const description = el('adminDescription')?.value.trim();
+  const size = el('adminSize')?.value.trim();
+  const stock = Number(el('adminStock')?.value || 0);
+  const files = [...(el('adminImages')?.files || [])];
+
+  if (!brand || !name || !price || !size || !stock) {
+    el('adminStatus').textContent = 'Заполните все обязательные поля';
+    return;
+  }
+
+  if (!files.length) {
+    el('adminStatus').textContent = 'Добавьте хотя бы одну фотографию';
+    return;
+  }
+
+  if (files.length > 5) {
+    el('adminStatus').textContent = 'Можно загрузить максимум 5 фотографий';
+    return;
+  }
+
+  try {
+    adminAddProductBtn.disabled = true;
+    el('adminStatus').textContent = 'Загружаем фотографии...';
+
+    const images = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = file.name.split('.').pop() || 'jpg';
+      const fileName =
+        `admin/${Date.now()}-${i}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const uploadRes = await fetch(
+        `${SUPABASE_URL}/storage/v1/object/product-images/${fileName}`,
+        {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': file.type
+          },
+          body: file
+        }
+      );
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.text();
+        throw new Error(`Ошибка фото (${uploadRes.status}): ${err}`);
+      }
+
+      images.push(
+        `${SUPABASE_URL}/storage/v1/object/public/product-images/${fileName}`
+      );
+    }
+
+    el('adminStatus').textContent = 'Создаём товар...';
+
+    const product = {
+      brand,
+      name,
+      category,
+      price,
+      image_url: images[0],
+      images,
+      description,
+      variants: [
+        {
+          size,
+          stock
+        }
+      ],
+      active: true
+    };
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/products`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(product)
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Ошибка товара (${res.status}): ${err}`);
+    }
+
+    el('adminStatus').textContent = 'Товар добавлен';
+
+    el('adminBrand').value = '';
+    el('adminName').value = '';
+    el('adminPrice').value = '';
+    el('adminDescription').value = '';
+    el('adminSize').value = '';
+    el('adminStock').value = '1';
+    el('adminImages').value = '';
+
+    await tryLoadSupabaseProducts();
+    renderCategories();
+    renderProducts();
+
+  } catch (err) {
+    console.error(err);
+    el('adminStatus').textContent = err.message;
+  } finally {
+    adminAddProductBtn.disabled = false;
+  }
 });

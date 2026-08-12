@@ -201,7 +201,21 @@ el('poizonOrderButton').addEventListener('click', async () => {
   el('poizonOrderStatus').textContent = 'Укажите ваш Telegram';
   return;
 }
+el('poizonPrice').value = '';
+el('poizonWeight').value = '';
+el('poizonTelegram').value = '';
 
+el('poizonDelivery').value = '850';
+
+document.querySelectorAll('.delivery-option').forEach(btn => {
+  btn.classList.remove('active');
+});
+
+document
+  .querySelector('.delivery-option[data-rate="850"]')
+  ?.classList.add('active');
+
+calculatePoizon();
   if (!yuan || !weight) {
     el('poizonOrderStatus').textContent = 'Укажите стоимость товара и вес.';
     return;

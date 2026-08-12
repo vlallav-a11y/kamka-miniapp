@@ -90,7 +90,40 @@
       <p id="checkoutStatus" class="muted"></p>
     </form>
   </section>
+<section id="poizonSection" class="poizon-section hidden">
+  <div class="poizon-card">
+    <div class="eyebrow">ЗАКАЗ С POIZON</div>
+    <h2>Калькулятор стоимости</h2>
+    <p class="muted">Рассчитайте примерную стоимость заказа</p>
 
+    <label>
+      Стоимость товара в ¥
+      <input id="poizonPrice" type="number" min="0" placeholder="Например, 1200">
+    </label>
+
+    <label>
+      Ориентировочный вес, кг
+      <input id="poizonWeight" type="number" min="0" step="0.1" placeholder="Например, 1.2">
+    </label>
+
+    <label>
+      Способ доставки
+      <select id="poizonDelivery">
+        <option value="850">Авто — 850 ₽/кг</option>
+        <option value="2500">Авиа — 2500 ₽/кг</option>
+      </select>
+    </label>
+
+    <div class="poizon-result">
+      <div>Товар: <strong id="poizonProductTotal">0 ₽</strong></div>
+      <div>Доставка: <strong id="poizonDeliveryTotal">0 ₽</strong></div>
+      <div>Комиссия: <strong>700 ₽</strong></div>
+      <div class="poizon-final">
+        Итого: <strong id="poizonFinalTotal">0 ₽</strong>
+      </div>
+    </div>
+  </div>
+</section>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

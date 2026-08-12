@@ -161,6 +161,73 @@
 
 <p id="poizonOrderStatus" class="muted"></p> </div>
 </section>
+  <section id="adminSection" class="admin-section hidden">
+  <div class="admin-card">
+    <div class="eyebrow">АДМИН-ПАНЕЛЬ</div>
+    <h2>Добавить товар</h2>
+
+    <label>
+      Бренд
+      <input id="adminBrand" type="text" placeholder="Stone Island">
+    </label>
+
+    <label>
+      Название
+      <input id="adminName" type="text" placeholder="Stone Island Sweatshirt">
+    </label>
+
+    <label>
+      Категория
+      <select id="adminCategory">
+        <option value="Одежда">Одежда</option>
+        <option value="Обувь">Обувь</option>
+        <option value="Другое">Другое</option>
+      </select>
+    </label>
+
+    <label>
+      Цена, ₽
+      <input id="adminPrice" type="number" min="0" placeholder="12990">
+    </label>
+
+    <label>
+      Описание
+      <textarea
+        id="adminDescription"
+        rows="4"
+        placeholder="Описание товара"
+      ></textarea>
+    </label>
+
+    <label>
+      Размер
+      <input id="adminSize" type="text" placeholder="S">
+    </label>
+
+    <label>
+      Количество
+      <input id="adminStock" type="number" min="1" value="1">
+    </label>
+
+    <label>
+      Фотографии — до 5 шт.
+      <input
+        id="adminImages"
+        type="file"
+        accept="image/*"
+        multiple
+      >
+    </label>
+
+    <div id="adminImagePreview"></div>
+
+    <button id="adminAddProductBtn" class="primary-btn" type="button">
+      Добавить товар
+    </button>
+
+    <p id="adminStatus" class="muted"></p>
+  </div>
+</section>
   <script type="module" src="./app.js?v=2"></script>
 </body>
 </html>

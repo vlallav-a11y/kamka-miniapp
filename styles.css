@@ -120,3 +120,50 @@
   text-align: center;
   font-size: 13px;
 }
+.delivery-block {
+  margin-top: 18px;
+}
+
+.delivery-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.delivery-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.delivery-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+
+  padding: 15px;
+
+  background: #fafafa;
+  border: 1px solid #e1e1e1;
+  border-radius: 14px;
+
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.delivery-option.active {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+.delivery-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.delivery-time {
+  font-size: 13px;
+  opacity: 0.65;
+}

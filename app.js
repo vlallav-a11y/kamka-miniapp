@@ -473,3 +473,7 @@ adminAddProductBtn?.addEventListener('click', async () => {
     el('adminStatus').textContent = 'Ошибка: ' + err.message;
   }
 });
+el('adminAddProductBtn')?.addEventListener('click', () => {
+  const status = el('adminStatus');
+  if (status) status.textContent = 'Кнопка работает';
+});

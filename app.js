@@ -173,8 +173,7 @@ function calculatePoizon() {
   const deliveryTotal = weight * deliveryRate;
   const finalTotal = productTotal + deliveryTotal + POIZON_COMMISSION;
 
-  el('poizonProductTotal').textContent = money(Math.round(productTotal));
-  el('poizonDeliveryTotal').textContent = money(Math.round(deliveryTotal));
+  
   el('poizonFinalTotal').textContent = money(Math.round(finalTotal));
 }
 

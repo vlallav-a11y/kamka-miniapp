@@ -159,3 +159,57 @@ el('checkoutForm').addEventListener('submit',submitOrder);
 
 await tryLoadSupabaseProducts();
 renderCategories();renderProducts();updateCartCount();
+// ===== POIZON CALCULATOR =====
+
+const POIZON_RATE = 12.7;
+const POIZON_COMMISSION = 700;
+
+function calculatePoizon() {
+  const yuan = Number(el('poizonPrice').value) || 0;
+  const weight = Number(el('poizonWeight').value) || 0;
+  const deliveryRate = Number(el('poizonDelivery').value) || 0;
+
+  const productTotal = yuan * POIZON_RATE;
+  const deliveryTotal = weight * deliveryRate;
+  const finalTotal = productTotal + deliveryTotal + POIZON_COMMISSION;
+
+  el('poizonProductTotal').textContent = money(Math.round(productTotal));
+  el('poizonDeliveryTotal').textContent = money(Math.round(deliveryTotal));
+  el('poizonFinalTotal').textContent = money(Math.round(finalTotal));
+}
+
+el('poizonPrice').addEventListener('input', calculatePoizon);
+el('poizonWeight').addEventListener('input', calculatePoizon);
+el('poizonDelivery').addEventListener('change', calculatePoizon);
+// ===== SECTION SWITCHER =====
+
+const stockBtn = el('stockSectionBtn');
+const poizonBtn = el('poizonSectionBtn');
+const poizonSection = el('poizonSection');
+
+function showStockSection() {
+  stockBtn.classList.add('active');
+  poizonBtn.classList.remove('active');
+
+  poizonSection.classList.add('hidden');
+
+  document.querySelector('.hero').classList.remove('hidden');
+  document.querySelector('.controls').classList.remove('hidden');
+  el('productGrid').parentElement.classList.remove('hidden');
+}
+
+function showPoizonSection() {
+  poizonBtn.classList.add('active');
+  stockBtn.classList.remove('active');
+
+  poizonSection.classList.remove('hidden');
+
+  document.querySelector('.hero').classList.add('hidden');
+  document.querySelector('.controls').classList.add('hidden');
+  el('productGrid').parentElement.classList.add('hidden');
+}
+
+stockBtn.addEventListener('click', showStockSection);
+poizonBtn.addEventListener('click', showPoizonSection);
+
+// ===== END SECTION SWITCHER =====

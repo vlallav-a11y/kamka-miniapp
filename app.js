@@ -213,8 +213,8 @@ el('poizonOrderButton').addEventListener('click', async () => {
     items: [
       {
         name: 'Заказ с Poizon',
-        link: link,
-        size: size,
+        
+  
         price_yuan: yuan,
         weight_kg: weight,
         delivery: deliveryName

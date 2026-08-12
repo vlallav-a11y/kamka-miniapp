@@ -180,6 +180,90 @@ function calculatePoizon() {
 el('poizonPrice').addEventListener('input', calculatePoizon);
 el('poizonWeight').addEventListener('input', calculatePoizon);
 el('poizonDelivery').addEventListener('change', calculatePoizon);
+el('poizonOrderButton').addEventListener('click', async () => {
+  const yuan = Number(el('poizonPrice').value) || 0;
+  const weight = Number(el('poizonWeight').value) || 0;
+  const deliveryRate = Number(el('poizonDelivery').value) || 0;
+  const link = el('poizonLink').value.trim();
+  const size = el('poizonSize').value.trim();
+
+  if (!yuan || !weight) {
+    el('poizonOrderStatus').textContent = 'Укажите стоимость товара и вес.';
+    return;
+  }
+
+  if (!link) {
+    el('poizonOrderStatus').textContent = 'Вставьте ссылку на товар.';
+    return;
+  }
+
+  const productTotal = yuan * POIZON_RATE;
+  const deliveryTotal = weight * deliveryRate;
+  const finalTotal = Math.round(
+    productTotal + deliveryTotal + POIZON_COMMISSION
+  );
+
+  const deliveryName =
+    deliveryRate === 2500 ? 'Авиа' : 'Авто';
+
+  const payload = {
+    telegram_user: tg?.initDataUnsafe?.user || null,
+    telegram_init_data: tg?.initData || '',
+
+    customer: {
+      type: 'poizon'
+    },
+
+    items: [
+      {
+        name: 'Заказ с Poizon',
+        link: link,
+        size: size,
+        price_yuan: yuan,
+        weight_kg: weight,
+        delivery: deliveryName
+      }
+    ],
+
+    total: finalTotal,
+    created_at: new Date().toISOString()
+  };
+
+  el('poizonOrderStatus').textContent = 'Отправляем заявку...';
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error('Не удалось сохранить заказ');
+    }
+
+    el('poizonOrderStatus').textContent =
+      'Заявка отправлена. Мы свяжемся с вами в Telegram.';
+
+    tg?.HapticFeedback?.notificationOccurred('success');
+
+  } catch (err) {
+    console.error(err);
+
+    el('poizonOrderStatus').textContent =
+      'Ошибка отправки. Попробуйте ещё раз.';
+
+    tg?.HapticFeedback?.notificationOccurred('error');
+  }
+});
 // ===== SECTION SWITCHER =====
 
 const stockBtn = el('stockSectionBtn');

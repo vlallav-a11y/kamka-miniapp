@@ -86,19 +86,93 @@ function openProduct(p){
   renderProductSheet(); openBackdrop(); el('productSheet').classList.remove('hidden');
 }
 
-function renderProductSheet(){
-  const p=selectedProduct; if(!p) return;
-  const visual=p.image?`<img src="${p.image}" alt="${p.name}">`:`${p.icon}`;
-  el('productSheetContent').innerHTML=`
-    <div class="detail-image">${visual}</div>
+function renderProductSheet() {
+  const p = selectedProduct;
+  if (!p) return;
+
+  const images =
+    Array.isArray(p.images) && p.images.length
+      ? p.images
+      : (p.image ? [p.image] : []);
+
+  const gallery = images.length
+    ? `
+      <div class="product-gallery">
+        ${images.map((src, index) => `
+          <img
+            src="${src}"
+            alt="${p.name}"
+            class="gallery-image ${index === 0 ? 'active' : ''}"
+          >
+        `).join('')}
+
+        ${images.length > 1 ? `
+          <button class="gallery-prev" type="button">‹</button>
+          <button class="gallery-next" type="button">›</button>
+          <div class="gallery-counter">1 / ${images.length}</div>
+        ` : ''}
+      </div>
+    `
+    : '';
+
+  el('productSheetContent').innerHTML = `
+    ${gallery}
+
     <div class="brand">${p.brand}</div>
     <div class="detail-title">${p.name}</div>
     <div class="detail-price">${money(p.price)}</div>
+
+    ${p.description ? `
+      <div class="product-description">
+        ${p.description}
+      </div>
+    ` : ''}
+
     <div class="muted">Выберите размер / объём</div>
+
     <div id="variantList" class="variant-list"></div>
     <div id="variantStock" class="muted"></div>
+
     <div style="height:14px"></div>
-    <button id="addToCartBtn" class="primary-btn">Добавить в корзину</button>`;
+
+    <button id="addToCartBtn" class="primary-btn">
+      Добавить в корзину
+    </button>
+  `;
+
+  if (images.length > 1) {
+    let currentImage = 0;
+
+    const galleryImages =
+      [...document.querySelectorAll('.gallery-image')];
+
+    const counter =
+      document.querySelector('.gallery-counter');
+
+    function showImage(index) {
+      galleryImages[currentImage]?.classList.remove('active');
+
+      currentImage =
+        (index + galleryImages.length) % galleryImages.length;
+
+      galleryImages[currentImage]?.classList.add('active');
+
+      if (counter) {
+        counter.textContent =
+          `${currentImage + 1} / ${galleryImages.length}`;
+      }
+    }
+
+    document.querySelector('.gallery-prev')
+      ?.addEventListener('click', () => {
+        showImage(currentImage - 1);
+      });
+
+    document.querySelector('.gallery-next')
+      ?.addEventListener('click', () => {
+        showImage(currentImage + 1);
+      });
+  }
   const wrap=el('variantList');
   p.variants.forEach(v=>{
     const b=document.createElement('button'); b.type='button'; b.className='variant-btn'+(selectedVariant===v?' active':''); b.disabled=Number(v.stock)<1; b.textContent=`${v.name} · ${v.stock}`;

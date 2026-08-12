@@ -533,9 +533,6 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
     el('adminSize').value = '';
     el('adminStock').value = '1';
 
-    await tryLoadSupabaseProducts();
-    renderCategories();
-    renderProducts();
 
   } catch (err) {
     console.error(err);

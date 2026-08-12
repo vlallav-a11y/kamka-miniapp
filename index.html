@@ -82,12 +82,17 @@
       <button id="closeCheckoutSheet" class="close-btn">Закрыть</button>
     </div>
     <form id="checkoutForm" class="form-grid">
-      <label>Имя<input id="nameInput" required /></label>
-      <label>Телефон<input id="phoneInput" type="tel" required placeholder="+7..." /></label>
-      <label>Город<input id="cityInput" required placeholder="Москва" /></label>
-      <label>Комментарий<textarea id="commentInput" rows="3" placeholder="Размер, доставка, пожелания"></textarea></label>
-      <button class="primary-btn" type="submit">Отправить заявку</button>
-      <p id="checkoutStatus" class="muted"></p>
+  <label>
+    Ваш Telegram
+    <input id="stockTelegram" type="text" placeholder="@username" required>
+  </label>
+
+  <button class="primary-btn" type="submit">
+    Отправить заявку
+  </button>
+
+  <p id="checkoutStatus" class="muted"></p>
+</form>
     </form>
   </section>
 <section id="poizonSection" class="poizon-section hidden">

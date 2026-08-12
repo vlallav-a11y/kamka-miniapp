@@ -417,8 +417,8 @@ adminAddProductBtn?.addEventListener('click', async () => {
       name,
       category,
       price,
-      image_url: images[0],
-      images,
+      image_url: imageUrl,
+images: imageUrl ? [imageUrl] : [],
       description,
       variants: [
         {
@@ -481,7 +481,7 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
   const description = el('adminDescription')?.value.trim();
   const size = el('adminSize')?.value.trim();
   const stock = Number(el('adminStock')?.value || 0);
-
+const file = el('adminImages')?.files?.[0];
   if (!brand || !name || !price || !size || !stock) {
     el('adminStatus').textContent = 'Заполните все обязательные поля';
     return;
@@ -489,7 +489,38 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
 
   try {
     el('adminStatus').textContent = 'Добавляем товар...';
+let imageUrl = '';
 
+if (file) {
+  el('adminStatus').textContent = 'Загружаем фото...';
+
+  const ext = file.name.split('.').pop() || 'jpg';
+  const fileName =
+    `admin/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const uploadRes = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/product-images/${fileName}`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': file.type
+      },
+      body: file
+    }
+  );
+
+  if (!uploadRes.ok) {
+    const text = await uploadRes.text();
+    el('adminStatus').textContent =
+      `Ошибка фото ${uploadRes.status}: ${text}`;
+    return;
+  }
+
+  imageUrl =
+    `${SUPABASE_URL}/storage/v1/object/public/product-images/${fileName}`;
+}
     const res = await fetch(
       `${SUPABASE_URL}/functions/v1/admin-product`,
       {

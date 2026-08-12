@@ -202,30 +202,14 @@ el('poizonOrderButton').addEventListener('click', async () => {
   const deliveryName =
     deliveryRate === 2500 ? 'Авиа' : 'Авто';
 
-  const payload = {
-    telegram_user: tg?.initDataUnsafe?.user || null,
-    telegram_init_data: tg?.initData || '',
-
-    customer: {
-      type: 'poizon'
-    },
-
-    items: [
-      {
-        name: 'Заказ с Poizon',
-        
-  
-        price_yuan: yuan,
-        weight_kg: weight,
-        delivery: deliveryName
-      }
-    ],
-
-    total: finalTotal,
-    created_at: new Date().toISOString()
-  };
-
-  el('poizonOrderStatus').textContent = 'Отправляем заявку...';
+const payload = {
+  telegram: telegram,
+  price_yuan: yuan,
+  weight: weight,
+  delivery: deliveryName,
+  total: finalTotal,
+  created_at: new Date().toISOString()
+};
 
   try {
     const res = await fetch(

@@ -481,69 +481,42 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
   const description = el('adminDescription')?.value.trim();
   const size = el('adminSize')?.value.trim();
   const stock = Number(el('adminStock')?.value || 0);
-const file = el('adminImages')?.files?.[0];
+
   if (!brand || !name || !price || !size || !stock) {
     el('adminStatus').textContent = 'Заполните все обязательные поля';
     return;
   }
 
-  try {
-    el('adminStatus').textContent = 'Добавляем товар...';
-let imageUrl = '';
+  const files = [...(el('adminImages')?.files || [])];
 
-if (file) {
-  el('adminStatus').textContent = 'Загружаем фото...';
-
-  const ext = file.name.split('.').pop() || 'jpg';
-  const fileName =
-    `admin/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-  const uploadRes = await fetch(
-    `${SUPABASE_URL}/storage/v1/object/product-images/${fileName}`,
-    {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': file.type
-      },
-      body: file
-    }
-  );
-
-  if (!uploadRes.ok) {
-    const text = await uploadRes.text();
-    el('adminStatus').textContent =
-      `Ошибка фото ${uploadRes.status}: ${text}`;
+  if (files.length > 5) {
+    el('adminStatus').textContent = 'Максимум 5 фотографий';
     return;
   }
 
-  imageUrl =
-    `${SUPABASE_URL}/storage/v1/object/public/product-images/${fileName}`;
-}
+  try {
+    el('adminStatus').textContent = 'Добавляем товар...';
+
+    const formData = new FormData();
+
+    formData.append('init_data', tg?.initData || '');
+    formData.append('brand', brand);
+    formData.append('name', name);
+    formData.append('category', category);
+    formData.append('price', String(price));
+    formData.append('description', description || '');
+    formData.append('size', size);
+    formData.append('stock', String(stock));
+
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+
     const res = await fetch(
       `${SUPABASE_URL}/functions/v1/admin-product`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          init_data: tg?.initData || '',
-          brand,
-          name,
-          category,
-          price,
-          description,
-          image_url: '',
-          images: [],
-          variants: [
-            {
-              size,
-              stock
-            }
-          ]
-        })
+        body: formData
       }
     );
 
@@ -563,7 +536,7 @@ if (file) {
     el('adminDescription').value = '';
     el('adminSize').value = '';
     el('adminStock').value = '1';
-
+    el('adminImages').value = '';
 
   } catch (err) {
     console.error(err);

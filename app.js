@@ -399,9 +399,13 @@ adminAddProductBtn?.addEventListener('click', async () => {
       );
 
       if (!uploadRes.ok) {
-        const err = await uploadRes.text();
-        throw new Error('Фото: ' + err);
-      }
+  const err = await uploadRes.text();
+
+  el('adminStatus').textContent =
+    `Ошибка фото (${uploadRes.status}): ${err}`;
+
+  return;
+}
 
       images.push(
         `${SUPABASE_URL}/storage/v1/object/public/product-images/${fileName}`

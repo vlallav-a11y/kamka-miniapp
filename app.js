@@ -16,6 +16,12 @@ let selectedVariant = null;
 const cart = [];
 
 const el = id => document.getElementById(id);
+const ADMIN_TELEGRAM_ID = 1023844365;
+const currentTelegramId = tg?.initDataUnsafe?.user?.id;
+
+if (currentTelegramId === ADMIN_TELEGRAM_ID) {
+  el('adminSectionBtn')?.classList.remove('hidden');
+}
 const money = v => new Intl.NumberFormat('ru-RU').format(v) + ' ₽';
 const totalStock = p => p.variants.reduce((s,v)=>s+Number(v.stock||0),0);
 

@@ -176,10 +176,22 @@ function calculatePoizon() {
   
   el('poizonFinalTotal').textContent = money(Math.round(finalTotal));
 }
+document.querySelectorAll('.delivery-option').forEach(button => {
+  button.addEventListener('click', () => {
 
+    document.querySelectorAll('.delivery-option').forEach(btn => {
+      btn.classList.remove('active');
+    });
+
+    button.classList.add('active');
+
+    el('poizonDelivery').value = button.dataset.rate;
+
+    calculatePoizon();
+  });
+});
 el('poizonPrice').addEventListener('input', calculatePoizon);
 el('poizonWeight').addEventListener('input', calculatePoizon);
-el('poizonDelivery').addEventListener('change', calculatePoizon);
 el('poizonOrderButton').addEventListener('click', async () => {
   const yuan = Number(el('poizonPrice').value) || 0;
   const weight = Number(el('poizonWeight').value) || 0;

@@ -291,10 +291,25 @@ const payload = {
 const stockBtn = el('stockSectionBtn');
 const poizonBtn = el('poizonSectionBtn');
 const poizonSection = el('poizonSection');
+const adminBtn = el('adminSectionBtn');
+const adminSection = el('adminSection');
+function showAdminSection() {
+  adminBtn.classList.add('active');
+  stockBtn.classList.remove('active');
+  poizonBtn.classList.remove('active');
+
+  adminSection.classList.remove('hidden');
+  poizonSection.classList.add('hidden');
+
+  document.querySelector('.hero').classList.add('hidden');
+  document.querySelector('.controls').classList.add('hidden');
+  el('productGrid').parentElement.classList.add('hidden');
+}
 
 function showStockSection() {
   stockBtn.classList.add('active');
-  poizonBtn.classList.remove('active');
+  poizonBtn.classList.remove('active');adminBtn.classList.remove('active');
+adminSection.classList.add('hidden');
 
   poizonSection.classList.add('hidden');
 
@@ -306,7 +321,8 @@ function showStockSection() {
 function showPoizonSection() {
   poizonBtn.classList.add('active');
   stockBtn.classList.remove('active');
-
+adminBtn.classList.remove('active');
+adminSection.classList.add('hidden');
   poizonSection.classList.remove('hidden');
 
   document.querySelector('.hero').classList.add('hidden');
@@ -316,5 +332,5 @@ function showPoizonSection() {
 
 stockBtn.addEventListener('click', showStockSection);
 poizonBtn.addEventListener('click', showPoizonSection);
-
+adminBtn.addEventListener('click', showAdminSection);
 // ===== END SECTION SWITCHER =====

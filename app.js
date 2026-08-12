@@ -132,6 +132,11 @@ if (!telegram) {
     username: telegram.replace(/^@/, '')
   },
   telegram_init_data: tg?.initData || '',
+
+  customer: {
+    telegram: telegram
+  },
+
   items: cart,
   total: cart.reduce((s, i) => s + i.price, 0),
   created_at: new Date().toISOString()

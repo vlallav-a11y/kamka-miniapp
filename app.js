@@ -184,18 +184,14 @@ el('poizonOrderButton').addEventListener('click', async () => {
   const yuan = Number(el('poizonPrice').value) || 0;
   const weight = Number(el('poizonWeight').value) || 0;
   const deliveryRate = Number(el('poizonDelivery').value) || 0;
-  const link = el('poizonLink').value.trim();
-  const size = el('poizonSize').value.trim();
+ 
 
   if (!yuan || !weight) {
     el('poizonOrderStatus').textContent = 'Укажите стоимость товара и вес.';
     return;
   }
 
-  if (!link) {
-    el('poizonOrderStatus').textContent = 'Вставьте ссылку на товар.';
-    return;
-  }
+  
 
   const productTotal = yuan * POIZON_RATE;
   const deliveryTotal = weight * deliveryRate;

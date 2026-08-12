@@ -121,14 +121,21 @@ function openCheckout(){if(!cart.length)return;el('cartSheet').classList.add('hi
 
 async function submitOrder(e){
   e.preventDefault();
-  const payload={
-    telegram_user:tg?.initDataUnsafe?.user||null,
-    telegram_init_data:tg?.initData||'',
-    customer:{name:el('nameInput').value,phone:el('phoneInput').value,city:el('cityInput').value,comment:el('commentInput').value},
-    items:cart,
-    total:cart.reduce((s,i)=>s+i.price,0),
-    created_at:new Date().toISOString()
-  };
+  const telegram = el('stockTelegram').value.trim();
+
+if (!telegram) {
+  el('checkoutStatus').textContent = 'Укажите ваш Telegram';
+  return;
+}
+  const payload = {
+  telegram_user: {
+    username: telegram.replace(/^@/, '')
+  },
+  telegram_init_data: tg?.initData || '',
+  items: cart,
+  total: cart.reduce((s, i) => s + i.price, 0),
+  created_at: new Date().toISOString()
+};
 
   el('checkoutStatus').textContent='Отправляем заявку...';
   try{

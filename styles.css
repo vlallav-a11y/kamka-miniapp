@@ -167,3 +167,9 @@
   font-size: 13px;
   opacity: 0.65;
 }
+.poizon-note {
+  margin: 10px 2px 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #888;
+}

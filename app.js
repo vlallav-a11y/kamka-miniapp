@@ -233,7 +233,7 @@ el('poizonOrderButton').addEventListener('click', async () => {
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders`,
+      `${SUPABASE_URL}/rest/v1/poizon_orders`,
       {
         method: 'POST',
         headers: {

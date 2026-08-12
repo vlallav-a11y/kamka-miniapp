@@ -4,8 +4,8 @@ const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
-}
-
+}const adminAddProductBtn = el('adminAddProductBtn');
+adminAddProductBtn.addEventListener('click', async () => {
 
 
 

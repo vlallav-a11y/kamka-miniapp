@@ -31,7 +31,7 @@ const totalStock = p => p.variants.reduce((s,v)=>s+Number(v.stock||0),0);
 async function tryLoadSupabaseProducts(){
   if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
   try{
-    const url = `${SUPABASE_URL}/rest/v1/products?select=id,brand,name,category,price,image_url,variants&active=eq.true&order=created_at.desc`;
+    const url = `${SUPABASE_URL}/rest/v1/products?select=id,brand,name,category,price,image_url,images,description,variants&active=eq.true&order=created_at.desc`;
     const res = await fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});
     if (!res.ok) {
   const errorText = await res.text();
@@ -39,12 +39,18 @@ async function tryLoadSupabaseProducts(){
 }
     const data = await res.json();
     if(Array.isArray(data) && data.length){
-      products = data.map(p=>({
-        id:p.id, brand:p.brand, name:p.name, category:p.category, price:Number(p.price), image:p.image_url||'', icon:'□', variants:Array.isArray(p.variants)?p.variants:[]
-      }));
-    }
-  }catch(err){ console.warn(err); }
-}
+      products = data.map(p => ({
+  id: p.id,
+  brand: p.brand,
+  name: p.name,
+  category: p.category,
+  price: Number(p.price),
+  image: p.image_url || '',
+  images: Array.isArray(p.images) ? p.images : [],
+  description: p.description || '',
+  icon: '□',
+  variants: Array.isArray(p.variants) ? p.variants : []
+}));
 
 function renderCategories(){
   const cats = ['Все', ...new Set(products.map(p=>p.category))];

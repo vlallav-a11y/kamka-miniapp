@@ -6,16 +6,10 @@ if (tg) {
   tg.expand();
 }
 
-const demoProducts = [
-  {id:1,brand:'STONE ISLAND',name:'Ghost Overshirt',category:'Одежда',price:24900,icon:'◼',image:'',variants:[{name:'M',stock:1},{name:'L',stock:2},{name:'XL',stock:1}]},
-  {id:2,brand:'C.P. COMPANY',name:'Chrome-R Hoodie',category:'Одежда',price:18900,icon:'▦',image:'',variants:[{name:'M',stock:1},{name:'L',stock:1}]},
-  {id:3,brand:'NIKE',name:'Air Force 1',category:'Обувь',price:12900,icon:'◒',image:'',variants:[{name:'41',stock:1},{name:'42',stock:2},{name:'43',stock:1}]},
-  {id:4,brand:'CREED',name:'Aventus Decant',category:'Парфюм',price:3490,icon:'◇',image:'',variants:[{name:'5 мл',stock:8},{name:'10 мл',stock:4}]},
-  {id:5,brand:'CREED',name:'Silver Mountain Water',category:'Парфюм',price:3190,icon:'◆',image:'',variants:[{name:'5 мл',stock:6},{name:'10 мл',stock:3}]},
-  {id:6,brand:'BURBERRY',name:'London Decant',category:'Парфюм',price:1990,icon:'◈',image:'',variants:[{name:'5 мл',stock:6},{name:'10 мл',stock:3}]}
-];
 
-let products = [...demoProducts];
+
+
+let products = [];
 let category = 'Все';
 let selectedProduct = null;
 let selectedVariant = null;

@@ -487,47 +487,59 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
     return;
   }
 
-  const product = {
-    brand,
-    name,
-    category,
-    price,
-    image_url: '',
-    description,
-    variants: [
-      {
-        size,
-        stock
-      }
-    ],
-    active: true
-  };
-
   try {
     el('adminStatus').textContent = 'Добавляем товар...';
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/products`, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal'
-      },
-      body: JSON.stringify(product)
-    });
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/admin-product`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          init_data: tg?.initData || '',
+          brand,
+          name,
+          category,
+          price,
+          description,
+          image_url: '',
+          images: [],
+          variants: [
+            {
+              size,
+              stock
+            }
+          ]
+        })
+      }
+    );
+
+    const data = await res.json();
 
     if (!res.ok) {
-      const err = await res.text();
       el('adminStatus').textContent =
-        `Ошибка ${res.status}: ${err}`;
+        `Ошибка ${res.status}: ${data.error || 'Неизвестная ошибка'}`;
       return;
     }
 
     el('adminStatus').textContent = 'Товар добавлен';
 
+    el('adminBrand').value = '';
+    el('adminName').value = '';
+    el('adminPrice').value = '';
+    el('adminDescription').value = '';
+    el('adminSize').value = '';
+    el('adminStock').value = '1';
+
+    await tryLoadSupabaseProducts();
+    renderCategories();
+    renderProducts();
+
   } catch (err) {
     console.error(err);
-    el('adminStatus').textContent = 'Ошибка: ' + err.message;
+    el('adminStatus').textContent =
+      'Ошибка: ' + err.message;
   }
 });

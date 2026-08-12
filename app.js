@@ -440,9 +440,15 @@ adminAddProductBtn?.addEventListener('click', async () => {
     );
 
     if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
-    }
+  const err = await res.text();
+
+  console.error('PRODUCT INSERT ERROR:', res.status, err);
+
+  el('adminStatus').textContent =
+    `Ошибка добавления (${res.status}): ${err}`;
+
+  return;
+}
 
     el('adminStatus').textContent = 'Товар добавлен';
 

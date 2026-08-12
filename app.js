@@ -350,13 +350,14 @@ adminSection.classList.add('hidden');
 function showPoizonSection() {
   poizonBtn.classList.add('active');
   stockBtn.classList.remove('active');
-adminBtn.classList.remove('active');
-adminSection.classList.add('hidden');
-  poizonSection.classList.remove('hidden');
+  adminBtn?.classList.remove('active');
 
-  document.querySelector('.hero').classList.add('hidden');
-  document.querySelector('.controls').classList.add('hidden');
-  el('productGrid').parentElement.classList.add('hidden');
+  poizonSection.classList.remove('hidden');
+  adminSection?.classList.add('hidden');
+
+  document.querySelector('.hero')?.classList.add('hidden');
+  document.querySelector('.controls')?.classList.add('hidden');
+  el('productGrid')?.parentElement?.classList.add('hidden');
 }
 
 stockBtn.addEventListener('click', showStockSection);

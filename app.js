@@ -28,41 +28,24 @@ if (currentTelegramId === ADMIN_TELEGRAM_ID) {
 const money = v => new Intl.NumberFormat('ru-RU').format(v) + ' ₽';
 const totalStock = p => p.variants.reduce((s,v)=>s+Number(v.stock||0),0);
 
-async function tryLoadSupabaseProducts() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
-
-  try {
-    const url =
-      `${SUPABASE_URL}/rest/v1/products?select=*&active=eq.true`;
-
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    });
-
+async function tryLoadSupabaseProducts(){
+  if(!SUPABASE_URL || !SUPABASE_ANON_KEY) return;
+  try{
+    const url = `${SUPABASE_URL}/rest/v1/products?select=id,brand,name,category,price,image_url,variants&active=eq.true&order=created_at.desc`;
+    const res = await fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});
     if (!res.ok) {
-      const text = await res.text();
-      console.error('SUPABASE ERROR:', res.status, text);
-      return;
-    }
-
-    const data = await res.json();
-
-    products = data.map(p => ({
-      ...p,
-      price: Number(p.price),
-      image: p.image_url || '',
-      variants: Array.isArray(p.variants) ? p.variants : []
-    }));
-
-    console.log('PRODUCTS LOADED:', products);
-
-  } catch (err) {
-    console.error('LOAD PRODUCTS ERROR:', err);
-  }
+  const errorText = await res.text();
+  throw new Error('Supabase load failed: ' + errorText);
 }
+    const data = await res.json();
+    if(Array.isArray(data) && data.length){
+      products = data.map(p=>({
+        id:p.id, brand:p.brand, name:p.name, category:p.category, price:Number(p.price), image:p.image_url||'', icon:'□', variants:Array.isArray(p.variants)?p.variants:[]
+      }));
+    }
+  }catch(err){ console.warn(err); }
+}
+
 function renderCategories(){
   const cats = ['Все', ...new Set(products.map(p=>p.category))];
   el('categoryTabs').innerHTML='';
@@ -350,14 +333,13 @@ adminSection.classList.add('hidden');
 function showPoizonSection() {
   poizonBtn.classList.add('active');
   stockBtn.classList.remove('active');
-  adminBtn?.classList.remove('active');
-
+adminBtn.classList.remove('active');
+adminSection.classList.add('hidden');
   poizonSection.classList.remove('hidden');
-  adminSection?.classList.add('hidden');
 
-  document.querySelector('.hero')?.classList.add('hidden');
-  document.querySelector('.controls')?.classList.add('hidden');
-  el('productGrid')?.parentElement?.classList.add('hidden');
+  document.querySelector('.hero').classList.add('hidden');
+  document.querySelector('.controls').classList.add('hidden');
+  el('productGrid').parentElement.classList.add('hidden');
 }
 
 stockBtn.addEventListener('click', showStockSection);
@@ -490,3 +472,4 @@ adminAddProductBtn?.addEventListener('click', async () => {
     console.error(err);
     el('adminStatus').textContent = 'Ошибка: ' + err.message;
   }
+});

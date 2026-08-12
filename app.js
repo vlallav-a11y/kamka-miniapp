@@ -33,7 +33,10 @@ async function tryLoadSupabaseProducts(){
   try{
     const url = `${SUPABASE_URL}/rest/v1/products?select=id,brand,name,category,price,image_url,variants&active=eq.true&order=created_at.desc`;
     const res = await fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`}});
-    if(!res.ok) throw new Error('Supabase load failed');
+    if (!res.ok) {
+  const errorText = await res.text();
+  throw new Error('Supabase load failed: ' + errorText);
+}
     const data = await res.json();
     if(Array.isArray(data) && data.length){
       products = data.map(p=>({

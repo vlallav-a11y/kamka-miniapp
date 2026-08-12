@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>KAMKA STORE</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Telegram Mini App</div>
+        <h1>KAMKA STORE</h1>
+      </div>
+      <button id="cartButton" class="icon-btn">Корзина <span id="cartCount">0</span></button>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">АКТУАЛЬНОЕ НАЛИЧИЕ</div>
+        <h2>Одежда, обувь и парфюм</h2>
+        <p>Выбирай товар, размер или объём и оформляй заявку прямо в Telegram.</p>
+      </div>
+    </section>
+
+    <section class="controls">
+      <input id="searchInput" type="search" placeholder="Поиск по бренду или названию" />
+      <div id="categoryTabs" class="tabs"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h3>В наличии</h3>
+          <p id="resultCount" class="muted"></p>
+        </div>
+        <select id="sortSelect">
+          <option value="default">По умолчанию</option>
+          <option value="priceAsc">Цена ↑</option>
+          <option value="priceDesc">Цена ↓</option>
+        </select>
+      </div>
+      <div id="productGrid" class="product-grid"></div>
+    </section>
+  </main>
+
+  <div id="sheetBackdrop" class="backdrop hidden"></div>
+  <section id="productSheet" class="sheet hidden" aria-modal="true" role="dialog">
+    <div class="sheet-handle"></div>
+    <button id="closeProductSheet" class="close-btn">Закрыть</button>
+    <div id="productSheetContent"></div>
+  </section>
+
+  <section id="cartSheet" class="sheet hidden" aria-modal="true" role="dialog">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h3>Корзина</h3>
+      <button id="closeCartSheet" class="close-btn">Закрыть</button>
+    </div>
+    <div id="cartItems" class="cart-list"></div>
+    <div class="cart-total-row"><span>Итого</span><strong id="cartTotal">0 ₽</strong></div>
+    <button id="checkoutButton" class="primary-btn">Оформить заказ</button>
+  </section>
+
+  <section id="checkoutSheet" class="sheet hidden" aria-modal="true" role="dialog">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h3>Оформление</h3>
+      <button id="closeCheckoutSheet" class="close-btn">Закрыть</button>
+    </div>
+    <form id="checkoutForm" class="form-grid">
+      <label>Имя<input id="nameInput" required /></label>
+      <label>Телефон<input id="phoneInput" type="tel" required placeholder="+7..." /></label>
+      <label>Город<input id="cityInput" required placeholder="Москва" /></label>
+      <label>Комментарий<textarea id="commentInput" rows="3" placeholder="Размер, доставка, пожелания"></textarea></label>
+      <button class="primary-btn" type="submit">Отправить заявку</button>
+      <p id="checkoutStatus" class="muted"></p>
+    </form>
+  </section>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

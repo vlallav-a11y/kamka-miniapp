@@ -473,7 +473,61 @@ adminAddProductBtn?.addEventListener('click', async () => {
     el('adminStatus').textContent = 'Ошибка: ' + err.message;
   }
 });
-el('adminAddProductBtn')?.addEventListener('click', () => {
-  const status = el('adminStatus');
-  if (status) status.textContent = 'Кнопка работает';
+el('adminAddProductBtn')?.addEventListener('click', async () => {
+  const brand = el('adminBrand')?.value.trim();
+  const name = el('adminName')?.value.trim();
+  const category = el('adminCategory')?.value;
+  const price = Number(el('adminPrice')?.value || 0);
+  const description = el('adminDescription')?.value.trim();
+  const size = el('adminSize')?.value.trim();
+  const stock = Number(el('adminStock')?.value || 0);
+
+  if (!brand || !name || !price || !size || !stock) {
+    el('adminStatus').textContent = 'Заполните все обязательные поля';
+    return;
+  }
+
+  const product = {
+    brand,
+    name,
+    category,
+    price,
+    image_url: '',
+    description,
+    variants: [
+      {
+        size,
+        stock
+      }
+    ],
+    active: true
+  };
+
+  try {
+    el('adminStatus').textContent = 'Добавляем товар...';
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/products`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify(product)
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      el('adminStatus').textContent =
+        `Ошибка ${res.status}: ${err}`;
+      return;
+    }
+
+    el('adminStatus').textContent = 'Товар добавлен';
+
+  } catch (err) {
+    console.error(err);
+    el('adminStatus').textContent = 'Ошибка: ' + err.message;
+  }
 });

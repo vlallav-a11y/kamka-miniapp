@@ -343,3 +343,120 @@ stockBtn.addEventListener('click', showStockSection);
 poizonBtn.addEventListener('click', showPoizonSection);
 adminBtn.addEventListener('click', showAdminSection);
 // ===== END SECTION SWITCHER =====
+const adminAddProductBtn = el('adminAddProductBtn');
+
+adminAddProductBtn?.addEventListener('click', async () => {
+  const brand = el('adminBrand')?.value.trim();
+  const name = el('adminName')?.value.trim();
+  const category = el('adminCategory')?.value;
+  const price = Number(el('adminPrice')?.value || 0);
+  const description = el('adminDescription')?.value.trim();
+  const size = el('adminSize')?.value.trim();
+  const stock = Number(el('adminStock')?.value || 0);
+  const files = [...(el('adminImages')?.files || [])];
+
+  if (!brand || !name || !price || !size || !stock) {
+    el('adminStatus').textContent = 'Заполните все поля';
+    return;
+  }
+
+  if (!files.length) {
+    el('adminStatus').textContent = 'Добавьте хотя бы одно фото';
+    return;
+  }
+
+  if (files.length > 5) {
+    el('adminStatus').textContent = 'Максимум 5 фотографий';
+    return;
+  }
+
+  el('adminStatus').textContent = 'Загружаем товар...';
+
+  try {
+    const images = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = file.name.split('.').pop() || 'jpg';
+
+      const fileName =
+        `admin/${Date.now()}-${i}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const uploadRes = await fetch(
+        `${SUPABASE_URL}/storage/v1/object/product-images/${fileName}`,
+        {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': file.type
+          },
+          body: file
+        }
+      );
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.text();
+        throw new Error('Фото: ' + err);
+      }
+
+      images.push(
+        `${SUPABASE_URL}/storage/v1/object/public/product-images/${fileName}`
+      );
+    }
+
+    const product = {
+      brand,
+      name,
+      category,
+      price,
+      image_url: images[0],
+      images,
+      description,
+      variants: [
+        {
+          size,
+          stock
+        }
+      ],
+      active: true
+    };
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/products`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify(product)
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+
+    el('adminStatus').textContent = 'Товар добавлен';
+
+    el('adminBrand').value = '';
+    el('adminName').value = '';
+    el('adminPrice').value = '';
+    el('adminDescription').value = '';
+    el('adminSize').value = '';
+    el('adminStock').value = '1';
+    el('adminImages').value = '';
+
+    await tryLoadSupabaseProducts();
+    renderCategories();
+    renderProducts();
+
+  } catch (err) {
+    console.error(err);
+    el('adminStatus').textContent = 'Ошибка: ' + err.message;
+  }
+});

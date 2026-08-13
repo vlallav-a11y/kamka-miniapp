@@ -1217,3 +1217,47 @@ select,
     width: 100%;
   }
 }
+/* =========================
+   STORE STATS
+========================= */
+
+.stats-card {
+  margin-bottom: 18px;
+}
+
+.stats-card h2 {
+  margin-bottom: 16px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat-box {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--soft);
+}
+
+.stat-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stat-box strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 7px;
+}
+
+.stat-sub {
+  color: var(--muted);
+  font-size: 12px;
+}

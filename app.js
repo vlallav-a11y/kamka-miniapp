@@ -1156,7 +1156,13 @@ function renderProductSheet() {
             : 'Нет доступных размеров'
         }
       </button>
-
+<button
+  id="findCustomOrderBtn"
+  class="secondary-btn full-width-btn"
+  type="button"
+>
+  Нет нужного размера? Найти под заказ
+</button>
 
       <button
         id="shareProductBtn"
@@ -1464,7 +1470,36 @@ function renderProductSheet() {
       ) {
         return;
       }
+el('findCustomOrderBtn')?.addEventListener('click', () => {
+  closeAll();
 
+  hideMainSections();
+
+  el('customOrderSection')?.classList.remove('hidden');
+  el('customOrderSectionBtn')?.classList.add('active');
+
+  if (el('customOrderProductName')) {
+    el('customOrderProductName').value =
+      `${product.brand} ${product.name}`.trim();
+  }
+
+  if (el('customOrderSize')) {
+    el('customOrderSize').value = '';
+  }
+
+  if (el('customOrderUrl')) {
+    el('customOrderUrl').value = '';
+  }
+
+  if (el('customOrderComment')) {
+    el('customOrderComment').value =
+      'Нужен другой размер этого товара';
+  }
+
+  setTimeout(() => {
+    el('customOrderSize')?.focus();
+  }, 100);
+});
       cart.push({
         productId:
           product.id,
@@ -2981,7 +3016,119 @@ const adminBtn =
   el(
     'adminSectionBtn'
   );
+// =========================
+// ПОД ЗАКАЗ
+// =========================
 
+el('customOrderSectionBtn')?.addEventListener('click', () => {
+  el('customOrderSubmit')?.addEventListener('click', async () => {
+  const button = el('customOrderSubmit');
+  const status = el('customOrderStatus');
+
+  const productName =
+    el('customOrderProductName')?.value.trim() || '';
+
+  const productUrl =
+    el('customOrderUrl')?.value.trim() || '';
+
+  const size =
+    el('customOrderSize')?.value.trim() || '';
+
+  const comment =
+    el('customOrderComment')?.value.trim() || '';
+
+  if (!productName && !productUrl) {
+    status.textContent =
+      'Укажи название товара или ссылку.';
+    return;
+  }
+
+  if (!size) {
+    status.textContent =
+      'Укажи нужный размер.';
+    return;
+  }
+
+  if (!tg?.initData) {
+    status.textContent =
+      'Открой магазин через Telegram.';
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Отправляем...';
+  status.textContent = '';
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/customer-orders`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'create',
+          init_data: tg.initData,
+          product_name: productName,
+          product_url: productUrl,
+          size,
+          comment
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Не удалось отправить заявку'
+      );
+    }
+
+    status.textContent =
+      `Заявка №${data.order.id} отправлена`;
+
+    el('customOrderProductName').value = '';
+    el('customOrderUrl').value = '';
+    el('customOrderSize').value = '';
+    el('customOrderComment').value = '';
+
+  } catch (error) {
+    console.error(error);
+
+    status.textContent =
+      error instanceof Error
+        ? error.message
+        : 'Произошла ошибка';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Отправить заявку';
+  }
+});
+  hideMainSections();
+
+  el('customOrderSection')?.classList.remove('hidden');
+  el('customOrderSectionBtn')?.classList.add('active');
+});
+
+
+// =========================
+// МОИ ЗАКАЗЫ
+// =========================
+
+el('myOrdersSectionBtn')?.addEventListener('click', async () => {
+  hideMainSections();
+
+  el('myOrdersSection')?.classList.remove('hidden');
+  el('myOrdersSectionBtn')?.classList.add('active');
+
+  await loadMyOrders();
+});
+
+el('refreshMyOrders')?.addEventListener('click', async () => {
+  await loadMyOrders();
+});
 const stockSection =
   el(
     'stockSection'
@@ -2997,7 +3144,27 @@ const adminSection =
     'adminSection'
   );
 
+function hideMainSections() {
+  document.querySelector('.hero')?.classList.add('hidden');
+  document.querySelector('.controls')?.classList.add('hidden');
 
+  const productGrid = el('productGrid');
+
+  if (productGrid) {
+    productGrid.closest('section')?.classList.add('hidden');
+  }
+
+  el('poizonSection')?.classList.add('hidden');
+  el('adminSection')?.classList.add('hidden');
+  el('customOrderSection')?.classList.add('hidden');
+  el('myOrdersSection')?.classList.add('hidden');
+
+  document
+    .querySelectorAll('.service-card')
+    .forEach(button => {
+      button.classList.remove('active');
+    });
+}
 function showStockSection() {
   stockBtn
     ?.classList
@@ -4306,6 +4473,131 @@ el(
   'submit',
   submitOrder
 );
+// =========================
+// МОИ ЗАКАЗЫ
+// =========================
+
+const ORDER_STATUSES = {
+  new: 'Заявка отправлена',
+  contacted: 'Связались с вами',
+  purchased: 'Выкуплено',
+  shipping: 'В пути',
+  received: 'Получено',
+  completed: 'Завершено',
+  cancelled: 'Отменено'
+};
+
+async function loadMyOrders() {
+  const list = el('myOrdersList');
+  const status = el('myOrdersStatus');
+
+  if (!list) return;
+
+  list.innerHTML =
+    '<div class="empty">Загрузка...</div>';
+
+  if (status) {
+    status.textContent = '';
+  }
+
+  if (!tg?.initData) {
+    list.innerHTML =
+      '<div class="empty">Открой магазин через Telegram.</div>';
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/customer-orders`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'my_orders',
+          init_data: tg.initData
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Не удалось загрузить заказы'
+      );
+    }
+
+    const orders = data.orders || [];
+
+    if (!orders.length) {
+      list.innerHTML =
+        '<div class="empty">У тебя пока нет заказов.</div>';
+      return;
+    }
+
+    list.innerHTML = orders.map(order => {
+      const title =
+        order.product_name || 'Товар под заказ';
+
+      const orderStatus =
+        ORDER_STATUSES[order.status] || order.status;
+
+      const date =
+        new Date(order.created_at)
+          .toLocaleDateString('ru-RU');
+
+      return `
+        <div class="my-order-item">
+
+          <div class="my-order-top">
+            <span class="my-order-number">
+              Заказ №${order.id}
+            </span>
+
+            <span class="my-order-date">
+              ${date}
+            </span>
+          </div>
+
+          <strong class="my-order-title">
+            ${escapeHtml(title)}
+          </strong>
+
+          ${
+            order.size
+              ? `
+                <div class="my-order-size">
+                  Размер: ${escapeHtml(order.size)}
+                </div>
+              `
+              : ''
+          }
+
+          <div class="my-order-status">
+            <span class="order-status-dot"></span>
+            ${escapeHtml(orderStatus)}
+          </div>
+
+        </div>
+      `;
+    }).join('');
+
+  } catch (error) {
+    console.error(error);
+
+    list.innerHTML =
+      '<div class="empty">Не удалось загрузить заказы.</div>';
+
+    if (status) {
+      status.textContent =
+        error instanceof Error
+          ? error.message
+          : 'Ошибка загрузки';
+    }
+  }
+}
 async function loadAdminStats() {
   if (!isAdmin) return;
 

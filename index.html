@@ -203,15 +203,31 @@
       ></textarea>
     </label>
 
-    <label>
-      Размер
-      <input id="adminSize" type="text" placeholder="S">
-    </label>
+  <div>
+  <div class="muted">Размеры и количество</div>
 
-    <label>
-      Количество
-      <input id="adminStock" type="number" min="1" value="1">
-    </label>
+  <div id="adminVariants">
+    <div class="admin-variant-row">
+      <input
+        class="adminVariantSize"
+        type="text"
+        placeholder="Размер, например M"
+      >
+
+      <input
+        class="adminVariantStock"
+        type="number"
+        min="1"
+        value="1"
+        placeholder="Количество"
+      >
+    </div>
+  </div>
+
+  <button id="addVariantBtn" type="button" class="secondary-btn">
+    + Добавить размер
+  </button>
+</div>
 
     <label>
       Фотографии — до 5 шт.

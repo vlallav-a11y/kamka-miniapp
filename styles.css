@@ -242,3 +242,18 @@
   text-decoration: line-through;
   cursor: not-allowed;
 }
+.admin-product-actions {
+  margin-top: 24px;
+  display: grid;
+  gap: 10px;
+}
+
+.danger-btn {
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  background: #111;
+  color: #fff;
+  font-size: 16px;
+}

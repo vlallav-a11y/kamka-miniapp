@@ -218,13 +218,19 @@ ${currentTelegramId === ADMIN_TELEGRAM_ID ? `
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'secondary-btn';
-      btn.textContent = `Снять размер ${sizeName}`;
+    btn.textContent =
+  Number(v.stock) > 0
+    ? `Снять размер ${sizeName}`
+    : `Вернуть размер ${sizeName}`;
 
       btn.addEventListener('click', async () => {
         const formData = new FormData();
 
         formData.append('init_data', tg?.initData || '');
-        formData.append('action', 'soldout');
+        formData.append(
+  'action',
+  Number(v.stock) > 0 ? 'soldout' : 'restore'
+);
         formData.append('product_id', String(p.id));
         formData.append('variant', sizeName);
 
@@ -243,7 +249,7 @@ ${currentTelegramId === ADMIN_TELEGRAM_ID ? `
           return;
         }
 
-        v.stock = 0;
+        v.stock = Number(v.stock) > 0 ? 0 : 1;
         selectedVariant =
           p.variants.find(v => Number(v.stock) > 0) || null;
 

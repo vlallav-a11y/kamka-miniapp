@@ -149,7 +149,21 @@ function renderProductSheet() {
       Добавить в корзину
     </button>
   `;
+${currentTelegramId === ADMIN_TELEGRAM_ID ? `
+  <div class="admin-product-actions">
+    <div class="muted">Админ</div>
 
+    <div id="adminVariantActions"></div>
+
+    <button
+      id="deleteProductBtn"
+      type="button"
+      class="danger-btn"
+    >
+      Удалить объявление
+    </button>
+  </div>
+` : ''}
   if (images.length > 1) {
     let currentImage = 0;
 
@@ -192,6 +206,84 @@ function renderProductSheet() {
 }
     b.addEventListener('click',()=>{selectedVariant=v;renderProductSheet();}); wrap.appendChild(b);
   });
+  if (currentTelegramId === ADMIN_TELEGRAM_ID) {
+  const adminWrap = el('adminVariantActions');
+
+  if (adminWrap) {
+    adminWrap.innerHTML = '';
+
+    p.variants.forEach(v => {
+      const sizeName = v.size || v.name;
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'secondary-btn';
+      btn.textContent = `Снять размер ${sizeName}`;
+
+      btn.addEventListener('click', async () => {
+        const formData = new FormData();
+
+        formData.append('init_data', tg?.initData || '');
+        formData.append('action', 'soldout');
+        formData.append('product_id', String(p.id));
+        formData.append('variant', sizeName);
+
+        const res = await fetch(
+          `${SUPABASE_URL}/functions/v1/admin-product`,
+          {
+            method: 'POST',
+            body: formData
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || 'Ошибка');
+          return;
+        }
+
+        v.stock = 0;
+        selectedVariant =
+          p.variants.find(v => Number(v.stock) > 0) || null;
+
+        renderProductSheet();
+      });
+
+      adminWrap.appendChild(btn);
+    });
+  }
+
+  el('deleteProductBtn')?.addEventListener('click', async () => {
+    if (!confirm('Удалить объявление?')) return;
+
+    const formData = new FormData();
+
+    formData.append('init_data', tg?.initData || '');
+    formData.append('action', 'delete');
+    formData.append('product_id', String(p.id));
+
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/admin-product`,
+      {
+        method: 'POST',
+        body: formData
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || 'Ошибка');
+      return;
+    }
+
+    products = products.filter(item => item.id !== p.id);
+
+    closeAll();
+    renderProducts();
+  });
+}
 el('variantStock').textContent = '';
   el('addToCartBtn').addEventListener('click',()=>{
     if(!selectedVariant) return;

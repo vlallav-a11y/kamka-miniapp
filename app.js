@@ -1497,6 +1497,10 @@ el('findCustomOrderBtn')?.addEventListener('click', () => {
   }
 
   setTimeout(() => {
+
+
+
+    
     el('customOrderSize')?.focus();
   }, 100);
 });
@@ -3036,7 +3040,8 @@ el('customOrderSectionBtn')?.addEventListener('click', () => {
 
   const comment =
     el('customOrderComment')?.value.trim() || '';
-
+const contactTelegram =
+  el('customOrderTelegram')?.value.trim() || '';
   if (!productName && !productUrl) {
     status.textContent =
       'Укажи название товара или ссылку.';
@@ -3048,7 +3053,11 @@ el('customOrderSectionBtn')?.addEventListener('click', () => {
       'Укажи нужный размер.';
     return;
   }
-
+if (!contactTelegram) {
+  status.textContent =
+    'Укажи свой Telegram.';
+  return;
+}
   if (!tg?.initData) {
     status.textContent =
       'Открой магазин через Telegram.';
@@ -3074,6 +3083,7 @@ el('customOrderSectionBtn')?.addEventListener('click', () => {
           product_url: productUrl,
           size,
           comment
+          contact_telegram: contactTelegram,
         })
       }
     );
@@ -3093,7 +3103,7 @@ el('customOrderSectionBtn')?.addEventListener('click', () => {
     el('customOrderUrl').value = '';
     el('customOrderSize').value = '';
     el('customOrderComment').value = '';
-
+el('customOrderTelegram').value = '';
   } catch (error) {
     console.error(error);
 
@@ -3111,7 +3121,10 @@ el('customOrderSectionBtn')?.addEventListener('click', () => {
   el('customOrderSection')?.classList.remove('hidden');
   el('customOrderSectionBtn')?.classList.add('active');
 });
-
+if (el('customOrderTelegram') && tg?.initDataUnsafe?.user?.username) {
+  el('customOrderTelegram').value =
+    `@${tg.initDataUnsafe.user.username}`;
+}
 
 // =========================
 // МОИ ЗАКАЗЫ

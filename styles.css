@@ -237,3 +237,8 @@
   color: #555;
   white-space: pre-line;
 }
+.variant-btn.sold-out {
+  opacity: 0.45;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}

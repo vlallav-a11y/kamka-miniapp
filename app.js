@@ -165,7 +165,8 @@ function saveFavorites() {
 }
 
 
-function updateFavoritesCount() {
+function updateFavoritesC
+  ount() {
   if (el('favoritesCount')) {
     el('favoritesCount').textContent =
       favoriteIds.size;
@@ -4685,7 +4686,20 @@ async function loadAdminStats() {
 // =========================
 // START
 // =========================
+fillTelegramContact();
 
+function fillTelegramContact() {
+  const input = el('customOrderTelegram');
+
+  if (!input) return;
+
+  const username =
+    tg?.initDataUnsafe?.user?.username;
+
+  if (username && !input.value) {
+    input.value = `@${username}`;
+  }
+}
 updateFavoritesCount();
 
 updateCartCount();

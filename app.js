@@ -138,7 +138,7 @@ function renderProductSheet() {
       </div>
     ` : ''}
 
-    <div class="muted">Выберите размер / объём</div>
+    <div class="muted">Выберите размер</div>
 
     <div id="variantList" class="variant-list"></div>
     <div id="variantStock" class="muted"></div>
@@ -185,13 +185,13 @@ function renderProductSheet() {
   }
   const wrap=el('variantList');
   p.variants.forEach(v=>{
-    const b=document.createElement('button'); b.type='button'; b.className='variant-btn'+(selectedVariant===v?' active':''); b.disabled=Number(v.stock)<1; b.textContent=`${v.name} · ${v.stock}`;
+    const b=document.createElement('button'); b.type='button'; b.className='variant-btn'+(selectedVariant===v?' active':''); b.disabled=Number(v.stock)<1; b.textContent=`$(v.size || v.name) · ${v.stock}`;
     b.addEventListener('click',()=>{selectedVariant=v;renderProductSheet();}); wrap.appendChild(b);
   });
   el('variantStock').textContent=selectedVariant?`Осталось: ${selectedVariant.stock} шт.`:'Нет в наличии';
   el('addToCartBtn').addEventListener('click',()=>{
     if(!selectedVariant) return;
-    cart.push({productId:p.id,brand:p.brand,name:p.name,variant:selectedVariant.name,price:p.price});
+    cart.push({productId:p.id,brand:p.brand,name:p.name,variant:selectedVariant.size || selectedVariant.name,price:p.price});
     updateCartCount();
     tg?.HapticFeedback?.impactOccurred('light');
     closeAll();

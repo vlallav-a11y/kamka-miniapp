@@ -320,21 +320,7 @@ renderProducts();
 
 alert('Изменения сохранены');
 });
-  const data = await res.json();
-
-  if (!res.ok) {
-    alert(data.error || 'Ошибка сохранения');
-    return;
-  }
-
-  p.price = price;
-  p.description = description;
-
-  renderProductSheet();
-  renderProducts();
-
-  alert('Изменения сохранены');
-});
+  
   el('deleteProductBtn')?.addEventListener('click', async () => {
     if (!confirm('Удалить объявление?')) return;
 

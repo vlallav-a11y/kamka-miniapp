@@ -5,7 +5,6 @@
   --border: #e8e8e8;
   --soft: #f6f6f6;
   --accent: #111;
-  --danger: #111;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -52,6 +51,7 @@ button:disabled {
     16px
     calc(110px + var(--safe-bottom));
 }
+
 
 /* =========================
    TOPBAR
@@ -116,6 +116,7 @@ button:disabled {
   color: #111;
 }
 
+
 /* =========================
    SERVICE MENU
 ========================= */
@@ -155,6 +156,7 @@ button:disabled {
   color: #777;
 }
 
+
 /* =========================
    HERO
 ========================= */
@@ -179,6 +181,7 @@ button:disabled {
   line-height: 1.5;
 }
 
+
 /* =========================
    CONTROLS
 ========================= */
@@ -197,7 +200,8 @@ select,
 .admin-card textarea,
 .admin-card select,
 .admin-edit-product input,
-.admin-edit-product textarea {
+.admin-edit-product textarea,
+.admin-edit-product select {
   width: 100%;
   border: 1px solid var(--border);
   background: #fff;
@@ -213,14 +217,23 @@ select,
 .admin-card textarea:focus,
 .admin-card select:focus,
 .admin-edit-product input:focus,
-.admin-edit-product textarea:focus {
+.admin-edit-product textarea:focus,
+.admin-edit-product select:focus {
   border-color: #111;
 }
 
-.filter-row {
+.filter-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.reset-filters-btn {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
 }
 
 .tabs {
@@ -249,6 +262,7 @@ select,
   border-color: #111;
 }
 
+
 /* =========================
    SECTION HEAD
 ========================= */
@@ -276,6 +290,7 @@ select,
   font-size: 13px;
 }
 
+
 /* =========================
    PRODUCT GRID
 ========================= */
@@ -298,6 +313,10 @@ select,
   background: #fff;
   text-align: left;
   min-width: 0;
+}
+
+.product-card.sold-out-card {
+  opacity: .72;
 }
 
 .product-card-media {
@@ -350,17 +369,17 @@ select,
   color: #fff;
 }
 
-.product-badge {
+.sold-out-badge {
   position: absolute;
   left: 8px;
   top: 8px;
-  padding: 6px 9px;
+  padding: 6px 10px;
   border-radius: 999px;
   background: #111;
   color: #fff;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: .05em;
   z-index: 2;
 }
 
@@ -381,6 +400,7 @@ select,
   margin-top: 8px;
   font-weight: 600;
 }
+
 
 /* =========================
    SHEETS
@@ -431,6 +451,7 @@ select,
   margin: 6px 0 16px;
 }
 
+
 /* =========================
    PRODUCT DETAIL
 ========================= */
@@ -474,8 +495,34 @@ select,
   font-size: 15px;
   line-height: 1.5;
   color: #555;
-  white-space: normal;
 }
+
+.product-sold-out-label {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 7px 11px;
+  background: #111;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* =========================
+   MAIN PRODUCT ACTIONS
+========================= */
+
+.product-main-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.share-product-btn {
+  width: 100%;
+  padding: 13px 14px;
+}
+
 
 /* =========================
    GALLERY
@@ -529,7 +576,7 @@ select,
 
 .gallery-counter {
   position: absolute;
-  bottom: 12px;
+  bottom: 34px;
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 12px;
@@ -538,6 +585,29 @@ select,
   color: #fff;
   font-size: 13px;
 }
+
+.gallery-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+}
+
+.gallery-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .55);
+}
+
+.gallery-dot.active {
+  background: #fff;
+  transform: scale(1.2);
+}
+
 
 /* =========================
    VARIANTS
@@ -572,6 +642,7 @@ select,
 .variant-btn:disabled {
   opacity: .4;
 }
+
 
 /* =========================
    BUTTONS
@@ -619,6 +690,7 @@ select,
   border-radius: 12px;
   padding: 9px 11px;
 }
+
 
 /* =========================
    CART
@@ -675,8 +747,9 @@ select,
   margin-top: 12px;
 }
 
+
 /* =========================
-   FORM
+   FORMS
 ========================= */
 
 .form-grid {
@@ -695,6 +768,7 @@ select,
   text-align: center;
   color: var(--muted);
 }
+
 
 /* =========================
    POIZON
@@ -830,6 +904,7 @@ select,
   color: #888;
 }
 
+
 /* =========================
    ADMIN
 ========================= */
@@ -899,6 +974,55 @@ select,
   border-radius: 10px;
   background: var(--soft);
 }
+
+
+/* =========================
+   ADMIN TABS
+========================= */
+
+.admin-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 6px 0 14px;
+}
+
+.admin-tab {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 14px;
+  padding: 11px 12px;
+  font-weight: 600;
+}
+
+.admin-tab.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.admin-tab span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: 5px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  color: #111;
+  font-size: 12px;
+}
+
+.admin-tab.active span {
+  background: #fff;
+  color: #111;
+}
+
+
+/* =========================
+   ADMIN LIST
+========================= */
 
 .admin-list-head {
   display: flex;
@@ -970,6 +1094,11 @@ select,
   gap: 7px;
 }
 
+
+/* =========================
+   ADMIN IN PRODUCT SHEET
+========================= */
+
 .admin-product-actions {
   margin-top: 26px;
   padding-top: 20px;
@@ -1014,6 +1143,7 @@ select,
   gap: 8px;
 }
 
+
 /* =========================
    RESPONSIVE
 ========================= */
@@ -1039,6 +1169,7 @@ select,
   }
 }
 
+
 @media (max-width: 480px) {
   .topbar {
     align-items: flex-start;
@@ -1058,8 +1189,8 @@ select,
     grid-template-columns: 1fr 1fr;
   }
 
-  .filter-row {
-    grid-template-columns: 1fr;
+  .filter-grid {
+    grid-template-columns: 1fr 1fr;
   }
 
   .admin-product-row-actions {
@@ -1076,7 +1207,9 @@ select,
 
   .admin-variant-row,
   .admin-variant-row:first-child {
-    grid-template-columns: minmax(0, 1fr) 90px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      90px;
   }
 
   .admin-variant-row .removeVariantBtn {

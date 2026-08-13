@@ -3119,7 +3119,7 @@ async function showAdminSection() {
 
   await loadAdminProducts();
 }
-
+await loadAdminStats();
 
 stockBtn
   ?.addEventListener(
@@ -4306,7 +4306,76 @@ el(
   'submit',
   submitOrder
 );
+async function loadAdminStats() {
+  if (!isAdmin) return;
 
+  const status = el('statsStatus');
+
+  if (status) {
+    status.textContent = 'Загружаем статистику...';
+  }
+
+  try {
+    const formData = new FormData();
+
+    addAdminAuth(formData);
+    formData.append('action', 'stats');
+
+    const data = await adminAction(formData);
+
+    if (el('statsTodayUsers')) {
+      el('statsTodayUsers').textContent =
+        data.today?.users ?? 0;
+    }
+
+    if (el('statsTodayVisits')) {
+      el('statsTodayVisits').textContent =
+        `${data.today?.visits ?? 0} открытий`;
+    }
+
+    if (el('stats7Users')) {
+      el('stats7Users').textContent =
+        data.last_7_days?.users ?? 0;
+    }
+
+    if (el('stats7Visits')) {
+      el('stats7Visits').textContent =
+        `${data.last_7_days?.visits ?? 0} открытий`;
+    }
+
+    if (el('stats30Users')) {
+      el('stats30Users').textContent =
+        data.last_30_days?.users ?? 0;
+    }
+
+    if (el('stats30Visits')) {
+      el('stats30Visits').textContent =
+        `${data.last_30_days?.visits ?? 0} открытий`;
+    }
+
+    if (el('statsAllUsers')) {
+      el('statsAllUsers').textContent =
+        data.all_time?.users ?? 0;
+    }
+
+    if (el('statsAllVisits')) {
+      el('statsAllVisits').textContent =
+        `${data.all_time?.visits ?? 0} открытий`;
+    }
+
+    if (status) {
+      status.textContent = '';
+    }
+
+  } catch (error) {
+    console.error(error);
+
+    if (status) {
+      status.textContent =
+        'Не удалось загрузить статистику';
+    }
+  }
+}
 
 // =========================
 // START

@@ -682,6 +682,43 @@ function filteredProducts() {
 }
 
 
+// =========================
+// НОВИНКА
+// =========================
+
+function isNewProduct(
+  product
+) {
+
+  if (
+    !product.created_at
+  ) {
+    return false;
+  }
+
+
+  const created =
+    new Date(
+      product.created_at
+    ).getTime();
+
+
+  const sevenDays =
+    7 *
+    24 *
+    60 *
+    60 *
+    1000;
+
+
+  return (
+    Date.now() -
+    created <=
+    sevenDays
+  );
+
+}
+
 
 // =========================
 // КАТАЛОГ

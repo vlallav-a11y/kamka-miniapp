@@ -1,30 +1,53 @@
 <!doctype html>
 <html lang="ru">
+
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
-  />
-  <meta name="theme-color" content="#ffffff" />
+  >
+
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
 
   <title>KAMKA STORE</title>
 
-  <link rel="stylesheet" href="./styles.css?v=3" />
+  <link
+    rel="stylesheet"
+    href="./styles.css?v=5"
+  >
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
+
 
 <body>
 
   <main class="app">
 
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
     <header class="topbar">
 
       <div>
-        <div class="eyebrow">Telegram Mini App</div>
-        <h1>KAMKA STORE</h1>
+
+        <div class="eyebrow">
+          Telegram Mini App
+        </div>
+
+        <h1>
+          KAMKA STORE
+        </h1>
+
       </div>
+
 
       <div class="topbar-actions">
 
@@ -34,8 +57,12 @@
           type="button"
         >
           Избранное
-          <span id="favoritesCount">0</span>
+
+          <span id="favoritesCount">
+            0
+          </span>
         </button>
+
 
         <button
           id="cartButton"
@@ -43,7 +70,10 @@
           type="button"
         >
           Корзина
-          <span id="cartCount">0</span>
+
+          <span id="cartCount">
+            0
+          </span>
         </button>
 
       </div>
@@ -51,8 +81,9 @@
     </header>
 
 
+
     <!-- =========================
-         ОСНОВНЫЕ РАЗДЕЛЫ
+         ГЛАВНОЕ МЕНЮ
     ========================== -->
 
     <section class="service-menu">
@@ -62,6 +93,7 @@
         class="service-card active"
         type="button"
       >
+
         <span class="service-title">
           В наличии
         </span>
@@ -69,6 +101,7 @@
         <span class="service-text">
           Посмотреть актуальные товары
         </span>
+
       </button>
 
 
@@ -77,6 +110,7 @@
         class="service-card"
         type="button"
       >
+
         <span class="service-title">
           Заказ с Poizon
         </span>
@@ -84,6 +118,7 @@
         <span class="service-text">
           Рассчитать стоимость заказа
         </span>
+
       </button>
 
 
@@ -92,23 +127,27 @@
         class="service-card hidden"
         type="button"
       >
+
         <span class="service-title">
           Админ
         </span>
 
         <span class="service-text">
-          Управление товарами
+          Управление магазином
         </span>
+
       </button>
 
     </section>
 
 
+
     <!-- =========================
-         НАЛИЧИЕ
+         КАТАЛОГ
     ========================== -->
 
     <section id="stockSection">
+
 
       <section class="hero">
 
@@ -131,13 +170,18 @@
       </section>
 
 
+
+      <!-- =========================
+           ПОИСК И ФИЛЬТРЫ
+      ========================== -->
+
       <section class="controls">
 
         <input
           id="searchInput"
           type="search"
           placeholder="Поиск по бренду или названию"
-        />
+        >
 
 
         <div
@@ -146,25 +190,59 @@
         ></div>
 
 
-        <div class="filter-row">
+        <div class="filter-grid">
 
           <select id="brandFilter">
+
             <option value="Все">
               Все бренды
             </option>
+
           </select>
 
 
           <select id="sizeFilter">
+
             <option value="Все">
               Все размеры
             </option>
+
           </select>
+
+
+          <input
+            id="minPriceFilter"
+            type="number"
+            min="0"
+            placeholder="Цена от"
+          >
+
+
+          <input
+            id="maxPriceFilter"
+            type="number"
+            min="0"
+            placeholder="Цена до"
+          >
 
         </div>
 
+
+        <button
+          id="resetFiltersBtn"
+          class="reset-filters-btn"
+          type="button"
+        >
+          Сбросить фильтры
+        </button>
+
       </section>
 
+
+
+      <!-- =========================
+           ТОВАРЫ
+      ========================== -->
 
       <section>
 
@@ -211,6 +289,7 @@
       </section>
 
     </section>
+
 
 
     <!-- =========================
@@ -266,6 +345,7 @@
         </label>
 
 
+
         <div class="delivery-block">
 
           <div class="delivery-label">
@@ -314,12 +394,13 @@
 
 
           <input
-            type="hidden"
             id="poizonDelivery"
+            type="hidden"
             value="850"
           >
 
         </div>
+
 
 
         <div class="poizon-result">
@@ -337,12 +418,9 @@
         </div>
 
 
+
         <p class="poizon-note">
-
-          Итоговая стоимость является ориентировочной
-          и может измениться после уточнения
-          фактического веса товара.
-
+          Итоговая стоимость является ориентировочной и может измениться после уточнения фактического веса товара.
         </p>
 
 
@@ -378,8 +456,9 @@
     </section>
 
 
+
     <!-- =========================
-         АДМИН
+         АДМИН-ПАНЕЛЬ
     ========================== -->
 
     <section
@@ -390,7 +469,9 @@
       <div class="admin-layout">
 
 
-        <!-- ДОБАВЛЕНИЕ ТОВАРА -->
+        <!-- =========================
+             ДОБАВИТЬ ТОВАР
+        ========================== -->
 
         <div class="admin-card">
 
@@ -472,16 +553,17 @@
 
             <textarea
               id="adminDescription"
-              rows="4"
+              rows="5"
               placeholder="Описание товара"
             ></textarea>
 
           </label>
 
 
+
           <!-- РАЗМЕРЫ -->
 
-          <div>
+          <div class="admin-variants-block">
 
             <div class="muted admin-label">
               Размеры и количество
@@ -523,6 +605,7 @@
           </div>
 
 
+
           <!-- ФОТО -->
 
           <label>
@@ -562,9 +645,13 @@
         </div>
 
 
-        <!-- УПРАВЛЕНИЕ ТОВАРАМИ -->
 
-        <div class="admin-card">
+        <!-- =========================
+             УПРАВЛЕНИЕ ТОВАРАМИ
+        ========================== -->
+
+        <div class="admin-card admin-management-card">
+
 
           <div class="admin-list-head">
 
@@ -575,7 +662,7 @@
               </div>
 
               <h2>
-                Все товары
+                Товары
               </h2>
 
             </div>
@@ -592,11 +679,45 @@
           </div>
 
 
+
+          <!-- АКТИВНЫЕ / СКРЫТЫЕ -->
+
+          <div class="admin-tabs">
+
+            <button
+              id="adminActiveTab"
+              class="admin-tab active"
+              type="button"
+            >
+              Активные
+
+              <span id="adminActiveCount">
+                0
+              </span>
+            </button>
+
+
+            <button
+              id="adminHiddenTab"
+              class="admin-tab"
+              type="button"
+            >
+              Скрытые
+
+              <span id="adminHiddenCount">
+                0
+              </span>
+            </button>
+
+          </div>
+
+
+
           <input
             id="adminProductSearch"
             class="admin-search"
             type="search"
-            placeholder="Поиск товара"
+            placeholder="Поиск по бренду или названию"
           >
 
 
@@ -620,14 +741,16 @@
   </main>
 
 
+
   <!-- =========================
-       ФОН ДЛЯ ОКОН
+       BACKDROP
   ========================== -->
 
   <div
     id="sheetBackdrop"
     class="backdrop hidden"
   ></div>
+
 
 
   <!-- =========================
@@ -643,16 +766,20 @@
 
     <div class="sheet-handle"></div>
 
+
     <button
       id="closeProductSheet"
       class="close-btn"
+      type="button"
     >
       Закрыть
     </button>
 
+
     <div id="productSheetContent"></div>
 
   </section>
+
 
 
   <!-- =========================
@@ -675,9 +802,11 @@
         Корзина
       </h3>
 
+
       <button
         id="closeCartSheet"
         class="close-btn"
+        type="button"
       >
         Закрыть
       </button>
@@ -707,11 +836,13 @@
     <button
       id="checkoutButton"
       class="primary-btn"
+      type="button"
     >
       Оформить заказ
     </button>
 
   </section>
+
 
 
   <!-- =========================
@@ -734,9 +865,11 @@
         Оформление
       </h3>
 
+
       <button
         id="closeCheckoutSheet"
         class="close-btn"
+        type="button"
       >
         Закрыть
       </button>
@@ -781,10 +914,12 @@
   </section>
 
 
+
   <script
     type="module"
-    src="./app.js?v=3"
+    src="./app.js?v=5"
   ></script>
 
 </body>
+
 </html>

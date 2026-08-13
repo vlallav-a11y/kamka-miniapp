@@ -114,7 +114,15 @@
         <span class="service-title">
           Заказ с Poizon
         </span>
+<button id="customOrderSectionBtn" class="service-card" type="button">
+  <span class="service-title">Под заказ</span>
+  <span class="service-text">Найти и привезти нужную вещь</span>
+</button>
 
+<button id="myOrdersSectionBtn" class="service-card" type="button">
+  <span class="service-title">Мои заказы</span>
+  <span class="service-text">Посмотреть статус заказов</span>
+</button>
         <span class="service-text">
           Рассчитать стоимость заказа
         </span>
@@ -295,7 +303,122 @@
     <!-- =========================
          POIZON
     ========================== -->
+<!-- =========================
+     ПОД ЗАКАЗ
+========================= -->
 
+<section id="customOrderSection" class="custom-order-section hidden">
+
+  <div class="custom-order-card">
+
+    <div class="eyebrow">KAMKA ORDER</div>
+
+    <h2>Найти вещь под заказ</h2>
+
+    <p class="muted">
+      Отправь ссылку на нужную вещь или напиши её название.
+      Мы найдём подходящий вариант и свяжемся с тобой.
+    </p>
+
+    <label>
+      Название товара
+
+      <input
+        id="customOrderProductName"
+        type="text"
+        placeholder="Например, Maison Margiela Replica"
+      >
+    </label>
+
+    <label>
+      Ссылка на товар
+
+      <input
+        id="customOrderUrl"
+        type="url"
+        placeholder="https://..."
+      >
+    </label>
+
+    <label>
+      Нужный размер
+
+      <input
+        id="customOrderSize"
+        type="text"
+        placeholder="Например, 42 или M"
+      >
+    </label>
+
+    <label>
+      Комментарий
+
+      <textarea
+        id="customOrderComment"
+        rows="4"
+        placeholder="Цвет, бюджет или другие пожелания"
+      ></textarea>
+    </label>
+
+    <button
+      id="customOrderSubmit"
+      class="primary-btn"
+      type="button"
+    >
+      Отправить заявку
+    </button>
+
+    <p
+      id="customOrderStatus"
+      class="muted"
+    ></p>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     МОИ ЗАКАЗЫ
+========================= -->
+
+<section id="myOrdersSection" class="my-orders-section hidden">
+
+  <div class="my-orders-card">
+
+    <div class="eyebrow">ЛИЧНЫЙ КАБИНЕТ</div>
+
+    <h2>Мои заказы</h2>
+
+    <p class="muted">
+      Здесь отображаются твои заявки и их текущий статус.
+    </p>
+
+    <div
+      id="myOrdersList"
+      class="my-orders-list"
+    >
+      <div class="empty">
+        Загрузка...
+      </div>
+    </div>
+
+    <button
+      id="refreshMyOrders"
+      class="secondary-btn full-width-btn"
+      type="button"
+    >
+      Обновить
+    </button>
+
+    <p
+      id="myOrdersStatus"
+      class="muted"
+    ></p>
+
+  </div>
+
+</section>
     <section
       id="poizonSection"
       class="poizon-section hidden"

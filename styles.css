@@ -1261,3 +1261,129 @@ select,
   color: var(--muted);
   font-size: 12px;
 }
+/* =========================
+   CUSTOM ORDER
+========================= */
+
+.custom-order-section,
+.my-orders-section {
+  margin-top: 20px;
+}
+
+.custom-order-card,
+.my-orders-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 20px;
+}
+
+.custom-order-card h2,
+.my-orders-card h2 {
+  margin: 6px 0 8px;
+  font-size: 24px;
+}
+
+.custom-order-card label {
+  display: grid;
+  gap: 7px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.custom-order-card input,
+.custom-order-card textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #fafafa;
+  border-radius: 14px;
+  padding: 14px 15px;
+  outline: none;
+}
+
+.custom-order-card input:focus,
+.custom-order-card textarea:focus {
+  border-color: #111;
+  background: #fff;
+}
+
+#customOrderSubmit {
+  margin-top: 18px;
+}
+
+#customOrderStatus {
+  margin-top: 10px;
+  text-align: center;
+}
+
+
+/* =========================
+   MY ORDERS
+========================= */
+
+.my-orders-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.my-order-item {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  background: #fff;
+}
+
+.my-order-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.my-order-number {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.my-order-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.my-order-title {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.my-order-size {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.my-order-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.order-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #111;
+}
+
+
+/* =========================
+   FIND CUSTOM ORDER BUTTON
+========================= */
+
+#findCustomOrderBtn {
+  margin-top: 8px;
+}

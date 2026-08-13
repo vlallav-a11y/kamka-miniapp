@@ -563,10 +563,22 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
   const category = el('adminCategory')?.value;
   const price = Number(el('adminPrice')?.value || 0);
   const description = el('adminDescription')?.value.trim();
-  const size = el('adminSize')?.value.trim();
-  const stock = Number(el('adminStock')?.value || 0);
+ const sizeInputs = [
+  ...document.querySelectorAll('.adminVariantSize')
+];
 
-  if (!brand || !name || !price || !size || !stock) {
+const stockInputs = [
+  ...document.querySelectorAll('.adminVariantStock')
+];
+
+const variants = sizeInputs
+  .map((input, index) => ({
+    size: input.value.trim(),
+    stock: Number(stockInputs[index]?.value || 0)
+  }))
+  .filter(v => v.size && v.stock > 0);
+
+  if (!brand || !name || !price || !variants.length) {
     el('adminStatus').textContent = 'Заполните все обязательные поля';
     return;
   }
@@ -589,8 +601,7 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
     formData.append('category', category);
     formData.append('price', String(price));
     formData.append('description', description || '');
-    formData.append('size', size);
-    formData.append('stock', String(stock));
+   formData.append('variants', JSON.stringify(variants));
 
     files.forEach(file => {
       formData.append('images', file);
@@ -627,4 +638,39 @@ el('adminAddProductBtn')?.addEventListener('click', async () => {
     el('adminStatus').textContent =
       'Ошибка: ' + err.message;
   }
+});
+el('addVariantBtn')?.addEventListener('click', () => {
+  const row = document.createElement('div');
+  row.className = 'admin-variant-row';
+
+  row.innerHTML = `
+    <input
+      class="adminVariantSize"
+      type="text"
+      placeholder="Размер, например L"
+    >
+
+    <input
+      class="adminVariantStock"
+      type="number"
+      min="1"
+      value="1"
+      placeholder="Количество"
+    >
+
+    <button
+      type="button"
+      class="removeVariantBtn"
+    >
+      ×
+    </button>
+  `;
+
+  row
+    .querySelector('.removeVariantBtn')
+    ?.addEventListener('click', () => {
+      row.remove();
+    });
+
+  el('adminVariants')?.appendChild(row);
 });

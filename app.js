@@ -51,7 +51,11 @@ async function tryLoadSupabaseProducts(){
   icon: '□',
   variants: Array.isArray(p.variants) ? p.variants : []
 }));
-
+  }
+} catch (err) {
+  console.warn(err);
+}
+}
 function renderCategories(){
   const cats = ['Все', ...new Set(products.map(p=>p.category))];
   el('categoryTabs').innerHTML='';

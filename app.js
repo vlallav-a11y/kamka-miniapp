@@ -186,6 +186,10 @@ function renderProductSheet() {
   const wrap=el('variantList');
   p.variants.forEach(v=>{
     const b=document.createElement('button'); b.type='button'; b.className='variant-btn'+(selectedVariant===v?' active':''); b.disabled=Number(v.stock)<1; b.textContent = v.size || v.name;
+   if (Number(v.stock) <= 0) {
+  b.classList.add('sold-out');
+  b.disabled = true;
+}
     b.addEventListener('click',()=>{selectedVariant=v;renderProductSheet();}); wrap.appendChild(b);
   });
 el('variantStock').textContent = '';

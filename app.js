@@ -152,6 +152,28 @@ function renderProductSheet() {
 ${currentTelegramId === ADMIN_TELEGRAM_ID ? `
   <div class="admin-product-actions">
     <div class="muted">Админ</div>
+    <div class="admin-edit-product">
+  <input
+    id="adminEditPrice"
+    type="number"
+    min="1"
+    value="${p.price}"
+    placeholder="Цена"
+  >
+
+  <textarea
+    id="adminEditDescription"
+    placeholder="Описание"
+  >${p.description || ''}</textarea>
+
+  <button
+    id="adminSaveProductBtn"
+    type="button"
+    class="secondary-btn"
+  >
+    Сохранить цену и описание
+  </button>
+</div>
     <div id="adminVariantActions"></div>
 
     <button
@@ -259,7 +281,60 @@ ${currentTelegramId === ADMIN_TELEGRAM_ID ? `
       adminWrap.appendChild(btn);
     });
   }
+el('adminSaveProductBtn')?.addEventListener('click', async () => {
+  const price = Number(el('adminEditPrice').value);
+  const description = el('adminEditDescription').value.trim();
 
+  if (!price || price <= 0) {
+    alert('Укажите корректную цену');
+    return;
+  }
+
+  const formData = new FormData();
+
+  formData.append('init_data', tg?.initData || '');
+  formData.append('action', 'edit');
+  formData.append('product_id', String(p.id));
+  formData.append('price', String(price));
+  formData.append('description', description);
+
+  const res = await fetch(
+    `${SUPABASE_URL}/functions/v1/admin-product`,
+    {
+      method: 'POST',
+      body: formData
+    }
+  );
+const data = await res.json();
+
+if (!res.ok) {
+  alert(data.error || 'Ошибка сохранения');
+  return;
+}
+
+p.price = price;
+p.description = description;
+
+renderProductSheet();
+renderProducts();
+
+alert('Изменения сохранены');
+});
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error || 'Ошибка сохранения');
+    return;
+  }
+
+  p.price = price;
+  p.description = description;
+
+  renderProductSheet();
+  renderProducts();
+
+  alert('Изменения сохранены');
+});
   el('deleteProductBtn')?.addEventListener('click', async () => {
     if (!confirm('Удалить объявление?')) return;
 

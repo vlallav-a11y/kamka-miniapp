@@ -8,21 +8,14 @@ if (tg) {
 }
 
 const ADMIN_TELEGRAM_ID = 1023844365;
-const currentTelegramId = Number(
-  tg?.initDataUnsafe?.user?.id || 0
-);
+const currentTelegramId = Number(tg?.initDataUnsafe?.user?.id || 0);
+const isAdmin = currentTelegramId === ADMIN_TELEGRAM_ID;
 
-const isAdmin =
-  currentTelegramId === ADMIN_TELEGRAM_ID;
-
-const el = id =>
-  document.getElementById(id);
-
+const el = id => document.getElementById(id);
 const money = value =>
-  new Intl.NumberFormat('ru-RU').format(
-    Number(value || 0)
-  ) + ' ₽';
+  new Intl.NumberFormat('ru-RU').format(Number(value || 0)) + ' ₽';
 
+const FAVORITES_KEY = 'kamka_favorites_v1';
 
 let products = [];
 let allAdminProducts = [];
@@ -35,65 +28,34 @@ let selectedProduct = null;
 let selectedVariant = null;
 
 let favoritesOnly = false;
+let adminMode = 'active';
 
 const cart = [];
 
-const FAVORITES_KEY =
-  'kamka_favorites_v1';
-
 let favoriteIds = new Set(
   JSON.parse(
-    localStorage.getItem(FAVORITES_KEY) ||
-    '[]'
+    localStorage.getItem(FAVORITES_KEY) || '[]'
   ).map(String)
 );
 
-
 if (isAdmin) {
-  el('adminSectionBtn')
-    ?.classList.remove('hidden');
+  el('adminSectionBtn')?.classList.remove('hidden');
 }
 
 
 // =========================
-// ИЗБРАННОЕ
+// HELPERS
 // =========================
 
-function saveFavorites() {
-  localStorage.setItem(
-    FAVORITES_KEY,
-    JSON.stringify([...favoriteIds])
-  );
-
-  updateFavoritesCount();
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
-
-function updateFavoritesCount() {
-  if (el('favoritesCount')) {
-    el('favoritesCount').textContent =
-      favoriteIds.size;
-  }
-}
-
-
-function toggleFavorite(productId) {
-  const id = String(productId);
-
-  if (favoriteIds.has(id)) {
-    favoriteIds.delete(id);
-  } else {
-    favoriteIds.add(id);
-  }
-
-  saveFavorites();
-  renderProducts();
-}
-
-
-// =========================
-// ТОВАРЫ
-// =========================
 
 function normalizeProduct(p) {
   return {
@@ -141,8 +103,60 @@ function normalizeProduct(p) {
 }
 
 
-async function tryLoadSupabaseProducts() {
+function productSoldOut(product) {
+  const variants =
+    Array.isArray(product.variants)
+      ? product.variants
+      : [];
 
+  return !variants.some(
+    v => Number(v.stock) > 0
+  );
+}
+
+
+// =========================
+// ИЗБРАННОЕ
+// =========================
+
+function saveFavorites() {
+  localStorage.setItem(
+    FAVORITES_KEY,
+    JSON.stringify([...favoriteIds])
+  );
+
+  updateFavoritesCount();
+}
+
+
+function updateFavoritesCount() {
+  if (el('favoritesCount')) {
+    el('favoritesCount').textContent =
+      favoriteIds.size;
+  }
+}
+
+
+function toggleFavorite(productId) {
+  const id =
+    String(productId);
+
+  if (favoriteIds.has(id)) {
+    favoriteIds.delete(id);
+  } else {
+    favoriteIds.add(id);
+  }
+
+  saveFavorites();
+  renderProducts();
+}
+
+
+// =========================
+// ЗАГРУЗКА КАТАЛОГА
+// =========================
+
+async function tryLoadSupabaseProducts() {
   if (
     !SUPABASE_URL ||
     !SUPABASE_ANON_KEY
@@ -151,142 +165,140 @@ async function tryLoadSupabaseProducts() {
   }
 
   try {
-
     const url =
       `${SUPABASE_URL}/rest/v1/products` +
       `?select=id,brand,name,category,price,image_url,images,description,variants,active,created_at` +
       `&active=eq.true` +
       `&order=created_at.desc`;
 
+    const res =
+      await fetch(
+        url,
+        {
+          headers: {
+            apikey:
+              SUPABASE_ANON_KEY,
 
-    const res = await fetch(
-      url,
-      {
-        headers: {
-          apikey:
-            SUPABASE_ANON_KEY,
-
-          Authorization:
-            `Bearer ${SUPABASE_ANON_KEY}`
+            Authorization:
+              `Bearer ${SUPABASE_ANON_KEY}`
+          }
         }
-      }
-    );
-
+      );
 
     if (!res.ok) {
-
-      const text =
-        await res.text();
-
       throw new Error(
         'Supabase load failed: ' +
-        text
+        await res.text()
       );
     }
 
-
     const data =
       await res.json();
-
 
     products =
       Array.isArray(data)
         ? data.map(normalizeProduct)
         : [];
 
-
     renderCategories();
     renderFilters();
     renderProducts();
 
   } catch (err) {
-
     console.error(err);
-
   }
 }
 
 
 // =========================
-// АДМИН — ЗАГРУЗКА ВСЕХ
+// EDGE FUNCTION
+// =========================
+
+async function adminAction(formData) {
+  const res =
+    await fetch(
+      `${SUPABASE_URL}/functions/v1/admin-product`,
+      {
+        method: 'POST',
+        body: formData
+      }
+    );
+
+  let data = {};
+
+  try {
+    data =
+      await res.json();
+  } catch {
+    data = {};
+  }
+
+  if (!res.ok) {
+    throw new Error(
+      data.error ||
+      `Ошибка ${res.status}`
+    );
+  }
+
+  return data;
+}
+
+
+function addAdminAuth(formData) {
+  formData.append(
+    'init_data',
+    tg?.initData || ''
+  );
+}
+
+
+// =========================
+// АДМИН — ВСЕ ТОВАРЫ
 // =========================
 
 async function loadAdminProducts() {
-
   if (!isAdmin) return;
-
 
   const status =
     el('adminListStatus');
-
 
   if (status) {
     status.textContent =
       'Загружаем товары...';
   }
 
-
   try {
+    const formData =
+      new FormData();
 
-    const url =
-      `${SUPABASE_URL}/rest/v1/products` +
-      `?select=id,brand,name,category,price,image_url,images,description,variants,active,created_at` +
-      `&order=created_at.desc`;
+    addAdminAuth(formData);
 
-
-    const res = await fetch(
-      url,
-      {
-        headers: {
-
-          apikey:
-            SUPABASE_ANON_KEY,
-
-          Authorization:
-            `Bearer ${SUPABASE_ANON_KEY}`
-
-        }
-      }
+    formData.append(
+      'action',
+      'list'
     );
 
-
-    if (!res.ok) {
-
-      throw new Error(
-        await res.text()
-      );
-
-    }
-
-
     const data =
-      await res.json();
-
+      await adminAction(formData);
 
     allAdminProducts =
-      Array.isArray(data)
-        ? data.map(normalizeProduct)
+      Array.isArray(data.products)
+        ? data.products.map(normalizeProduct)
         : [];
-
 
     if (status) {
       status.textContent = '';
     }
 
-
     renderAdminProductList();
 
   } catch (err) {
-
     console.error(err);
 
     if (status) {
-
       status.textContent =
-        'Ошибка загрузки товаров';
-
+        'Ошибка загрузки товаров. После обновления admin-product нажми «Обновить».';
     }
-
   }
 }
 
@@ -296,13 +308,10 @@ async function loadAdminProducts() {
 // =========================
 
 function renderCategories() {
-
   const wrap =
     el('categoryTabs');
 
-
   if (!wrap) return;
-
 
   const categories = [
     'Все',
@@ -314,21 +323,16 @@ function renderCategories() {
     )
   ];
 
-
   wrap.innerHTML = '';
 
-
   categories.forEach(c => {
-
     const button =
       document.createElement(
         'button'
       );
 
-
     button.type =
       'button';
-
 
     button.className =
       'tab' +
@@ -338,30 +342,23 @@ function renderCategories() {
           : ''
       );
 
-
     button.textContent =
       c;
-
 
     button.addEventListener(
       'click',
       () => {
-
         category = c;
 
         renderCategories();
         renderProducts();
-
       }
     );
-
 
     wrap.appendChild(
       button
     );
-
   });
-
 }
 
 
@@ -373,16 +370,13 @@ function productHasSize(
   product,
   size
 ) {
-
   if (size === 'Все') {
     return true;
   }
 
-
   return (
     product.variants || []
   ).some(v => {
-
     const name =
       String(
         v.size ||
@@ -390,28 +384,22 @@ function productHasSize(
         ''
       );
 
-
     return (
       name === size &&
       Number(v.stock) > 0
     );
-
   });
-
 }
 
 
 function renderFilters() {
-
   const brandFilter =
     el('brandFilter');
 
   const sizeFilter =
     el('sizeFilter');
 
-
   if (brandFilter) {
-
     const brands = [
       ...new Set(
         products
@@ -426,57 +414,43 @@ function renderFilters() {
         )
     );
 
-
     brandFilter.innerHTML =
-      `<option value="Все">
-        Все бренды
-      </option>` +
+      '<option value="Все">Все бренды</option>' +
 
       brands.map(
         brand =>
-          `<option value="${escapeHtml(brand)}">
-            ${escapeHtml(brand)}
-          </option>`
+          `<option value="${escapeHtml(brand)}">${escapeHtml(brand)}</option>`
       ).join('');
-
 
     if (
       brands.includes(
         selectedBrand
       )
     ) {
-
       brandFilter.value =
         selectedBrand;
-
     } else {
+      selectedBrand =
+        'Все';
 
-      selectedBrand = 'Все';
-      brandFilter.value = 'Все';
-
+      brandFilter.value =
+        'Все';
     }
-
   }
 
-
   if (sizeFilter) {
-
     const sizes = [
       ...new Set(
-
         products.flatMap(
           product =>
-
             (
               product.variants ||
               []
             )
-
             .filter(
               v =>
                 Number(v.stock) > 0
             )
-
             .map(
               v =>
                 String(
@@ -485,11 +459,8 @@ function renderFilters() {
                   ''
                 ).trim()
             )
-
             .filter(Boolean)
-
         )
-
       )
     ].sort(
       (a, b) =>
@@ -502,38 +473,29 @@ function renderFilters() {
         )
     );
 
-
     sizeFilter.innerHTML =
-      `<option value="Все">
-        Все размеры
-      </option>` +
+      '<option value="Все">Все размеры</option>' +
 
       sizes.map(
         size =>
-          `<option value="${escapeHtml(size)}">
-            ${escapeHtml(size)}
-          </option>`
+          `<option value="${escapeHtml(size)}">${escapeHtml(size)}</option>`
       ).join('');
-
 
     if (
       sizes.includes(
         selectedSize
       )
     ) {
-
       sizeFilter.value =
         selectedSize;
-
     } else {
+      selectedSize =
+        'Все';
 
-      selectedSize = 'Все';
-      sizeFilter.value = 'Все';
-
+      sizeFilter.value =
+        'Все';
     }
-
   }
-
 }
 
 
@@ -542,7 +504,6 @@ function renderFilters() {
 // =========================
 
 function filteredProducts() {
-
   const q =
     el('searchInput')
       ?.value
@@ -550,29 +511,38 @@ function filteredProducts() {
       .toLowerCase() ||
     '';
 
+  const minPrice =
+    Number(
+      el('minPriceFilter')
+        ?.value ||
+      0
+    );
+
+  const maxPrice =
+    Number(
+      el('maxPriceFilter')
+        ?.value ||
+      0
+    );
 
   let list =
     products.filter(
       product => {
-
         const categoryOk =
           category === 'Все' ||
           product.category ===
             category;
-
 
         const brandOk =
           selectedBrand === 'Все' ||
           product.brand ===
             selectedBrand;
 
-
         const sizeOk =
           productHasSize(
             product,
             selectedSize
           );
-
 
         const searchOk =
           !q ||
@@ -585,78 +555,74 @@ function filteredProducts() {
             .toLowerCase()
             .includes(q);
 
-
         const favoriteOk =
           !favoritesOnly ||
 
           favoriteIds.has(
-            String(
-              product.id
-            )
+            String(product.id)
           );
 
+        const minOk =
+          !minPrice ||
+          product.price >=
+            minPrice;
+
+        const maxOk =
+          !maxPrice ||
+          product.price <=
+            maxPrice;
 
         return (
           categoryOk &&
           brandOk &&
           sizeOk &&
           searchOk &&
-          favoriteOk
+          favoriteOk &&
+          minOk &&
+          maxOk
         );
-
       }
     );
-
 
   const sort =
     el('sortSelect')
       ?.value ||
     'newest';
 
-
   if (
     sort ===
     'priceAsc'
   ) {
-
     list.sort(
       (a, b) =>
         a.price -
         b.price
     );
-
   }
-
 
   if (
     sort ===
     'priceDesc'
   ) {
-
     list.sort(
       (a, b) =>
         b.price -
         a.price
     );
-
   }
-
 
   if (
     sort ===
     'newest'
   ) {
-
     list.sort(
       (a, b) => {
-
         const aDate =
           a.created_at
             ? new Date(
                 a.created_at
               ).getTime()
             : 0;
-
 
         const bDate =
           b.created_at
@@ -665,24 +631,16 @@ function filteredProducts() {
               ).getTime()
             : 0;
 
-
         return (
           bDate -
           aDate
         );
-
       }
     );
-
   }
 
-
   return list;
-
 }
-
-
-
 
 
 // =========================
@@ -690,49 +648,37 @@ function filteredProducts() {
 // =========================
 
 function renderProducts() {
-
   const list =
     filteredProducts();
-
 
   const grid =
     el('productGrid');
 
-
   if (!grid) return;
-
 
   if (
     el('resultCount')
   ) {
-
     el(
       'resultCount'
     ).textContent =
       `${list.length} позиций`;
-
   }
-
 
   if (
     el('catalogTitle')
   ) {
-
     el(
       'catalogTitle'
     ).textContent =
       favoritesOnly
         ? 'Избранное'
         : 'В наличии';
-
   }
-
 
   grid.innerHTML = '';
 
-
   if (!list.length) {
-
     grid.innerHTML =
       `<div class="empty product-grid-empty">
         ${
@@ -742,23 +688,28 @@ function renderProducts() {
         }
       </div>`;
 
-
     return;
   }
 
-
   list.forEach(
     product => {
-
       const card =
         document.createElement(
           'article'
         );
 
+      const soldOut =
+        productSoldOut(
+          product
+        );
 
       card.className =
-        'product-card';
-
+        'product-card' +
+        (
+          soldOut
+            ? ' sold-out-card'
+            : ''
+        );
 
       const visual =
         product.image
@@ -770,14 +721,12 @@ function renderProducts() {
 
         : product.icon;
 
-
       const favoriteActive =
         favoriteIds.has(
           String(
             product.id
           )
         );
-
 
       card.innerHTML = `
 
@@ -787,11 +736,9 @@ function renderProducts() {
             class="product-open-btn"
             type="button"
           >
-
             <div class="product-image">
               ${visual}
             </div>
-
           </button>
 
 
@@ -803,18 +750,19 @@ function renderProducts() {
             }"
             type="button"
           >
-
             ${
               favoriteActive
                 ? '♥'
                 : '♡'
             }
-
           </button>
 
 
-          
-      
+          ${
+            soldOut
+              ? '<div class="sold-out-badge">Продано</div>'
+              : ''
+          }
 
         </div>
 
@@ -840,7 +788,6 @@ function renderProducts() {
 
       `;
 
-
       card
         .querySelector(
           '.product-open-btn'
@@ -852,7 +799,6 @@ function renderProducts() {
               product
             )
         );
-
 
       card
         .querySelector(
@@ -866,7 +812,6 @@ function renderProducts() {
             )
         );
 
-
       card
         .querySelector(
           '.favorite-btn'
@@ -874,33 +819,27 @@ function renderProducts() {
         ?.addEventListener(
           'click',
           event => {
-
             event.stopPropagation();
 
             toggleFavorite(
               product.id
             );
-
           }
         );
-
 
       grid.appendChild(
         card
       );
-
     }
   );
-
 }
 
 
 // =========================
-// ОКНА
+// SHEETS
 // =========================
 
 function openBackdrop() {
-
   el(
     'sheetBackdrop'
   )
@@ -908,12 +847,10 @@ function openBackdrop() {
   .remove(
     'hidden'
   );
-
 }
 
 
 function closeAll() {
-
   [
     'productSheet',
     'cartSheet',
@@ -921,29 +858,24 @@ function closeAll() {
     'sheetBackdrop'
   ].forEach(
     id =>
-
       el(id)
         ?.classList
         .add(
           'hidden'
         )
-
   );
-
 }
 
 
 // =========================
-// ОТКРЫТИЕ ТОВАРА
+// ТОВАР
 // =========================
 
 function openProduct(
   product
 ) {
-
   selectedProduct =
     product;
-
 
   selectedVariant =
     (
@@ -952,16 +884,13 @@ function openProduct(
     )
     .find(
       v =>
-        Number(v.stock) >
-        0
+        Number(v.stock) > 0
     ) ||
     null;
-
 
   renderProductSheet();
 
   openBackdrop();
-
 
   el(
     'productSheet'
@@ -970,24 +899,14 @@ function openProduct(
   .remove(
     'hidden'
   );
-
 }
 
 
-// =========================
-// КАРТОЧКА ТОВАРА
-// =========================
-
 function renderProductSheet() {
-
   const product =
     selectedProduct;
 
-
-  if (!product) {
-    return;
-  }
-
+  if (!product) return;
 
   const images =
     Array.isArray(
@@ -1002,7 +921,6 @@ function renderProductSheet() {
             ? [product.image]
             : []
         );
-
 
   const gallery =
     images.length
@@ -1046,7 +964,6 @@ function renderProductSheet() {
               ‹
             </button>
 
-
             <button
               class="gallery-next"
               type="button"
@@ -1054,9 +971,24 @@ function renderProductSheet() {
               ›
             </button>
 
-
             <div class="gallery-counter">
               1 / ${images.length}
+            </div>
+
+            <div class="gallery-dots">
+              ${
+                images.map(
+                  (
+                    _,
+                    index
+                  ) =>
+                    `<span class="gallery-dot ${
+                      index === 0
+                        ? 'active'
+                        : ''
+                    }"></span>`
+                ).join('')
+              }
             </div>
 
           `
@@ -1070,7 +1002,6 @@ function renderProductSheet() {
 
     : '';
 
-
   const favoriteActive =
     favoriteIds.has(
       String(
@@ -1078,6 +1009,10 @@ function renderProductSheet() {
       )
     );
 
+  const soldOut =
+    productSoldOut(
+      product
+    );
 
   el(
     'productSheetContent'
@@ -1110,13 +1045,11 @@ function renderProductSheet() {
         }"
         type="button"
       >
-
         ${
           favoriteActive
             ? '♥'
             : '♡'
         }
-
       </button>
 
     </div>
@@ -1128,12 +1061,18 @@ function renderProductSheet() {
 
 
     ${
+      soldOut
+        ? '<div class="product-sold-out-label">Продано</div>'
+        : ''
+    }
+
+
+    ${
       product.description
 
       ? `
 
         <div class="product-description">
-
           ${
             escapeHtml(
               product.description
@@ -1143,7 +1082,6 @@ function renderProductSheet() {
               '<br>'
             )
           }
-
         </div>
 
       `
@@ -1156,34 +1094,43 @@ function renderProductSheet() {
       Выберите размер
     </div>
 
-
     <div
       id="variantList"
       class="variant-list"
     ></div>
 
-
     <div style="height:14px"></div>
 
 
-    <button
-      id="addToCartBtn"
-      class="primary-btn"
-      type="button"
-      ${
-        selectedVariant
-          ? ''
-          : 'disabled'
-      }
-    >
+    <div class="product-main-actions">
 
-      ${
-        selectedVariant
-          ? 'Добавить в корзину'
-          : 'Нет доступных размеров'
-      }
+      <button
+        id="addToCartBtn"
+        class="primary-btn"
+        type="button"
+        ${
+          selectedVariant
+            ? ''
+            : 'disabled'
+        }
+      >
+        ${
+          selectedVariant
+            ? 'Добавить в корзину'
+            : 'Нет доступных размеров'
+        }
+      </button>
 
-    </button>
+
+      <button
+        id="shareProductBtn"
+        class="secondary-btn share-product-btn"
+        type="button"
+      >
+        Поделиться
+      </button>
+
+    </div>
 
 
     ${
@@ -1199,6 +1146,76 @@ function renderProductSheet() {
 
 
           <div class="admin-edit-product">
+
+            <label>
+
+              Бренд
+
+              <input
+                id="adminEditBrand"
+                type="text"
+                value="${escapeHtml(product.brand)}"
+              >
+
+            </label>
+
+
+            <label>
+
+              Название
+
+              <input
+                id="adminEditName"
+                type="text"
+                value="${escapeHtml(product.name)}"
+              >
+
+            </label>
+
+
+            <label>
+
+              Категория
+
+              <select id="adminEditCategory">
+
+                <option
+                  value="Одежда"
+                  ${
+                    product.category === 'Одежда'
+                      ? 'selected'
+                      : ''
+                  }
+                >
+                  Одежда
+                </option>
+
+                <option
+                  value="Обувь"
+                  ${
+                    product.category === 'Обувь'
+                      ? 'selected'
+                      : ''
+                  }
+                >
+                  Обувь
+                </option>
+
+                <option
+                  value="Другое"
+                  ${
+                    product.category === 'Другое'
+                      ? 'selected'
+                      : ''
+                  }
+                >
+                  Другое
+                </option>
+
+              </select>
+
+            </label>
+
 
             <label>
 
@@ -1231,7 +1248,7 @@ function renderProductSheet() {
               type="button"
               class="secondary-btn full-width-btn"
             >
-              Сохранить цену и описание
+              Сохранить изменения
             </button>
 
           </div>
@@ -1243,26 +1260,59 @@ function renderProductSheet() {
           ></div>
 
 
-          <div class="admin-danger-row">
+          ${
+            product.active
 
-            <button
-              id="hideProductBtn"
-              type="button"
-              class="secondary-btn full-width-btn"
-            >
-              Скрыть товар
-            </button>
+            ? `
+
+              <div class="admin-danger-row">
+
+                <button
+                  id="hideProductBtn"
+                  type="button"
+                  class="secondary-btn full-width-btn"
+                >
+                  Скрыть товар
+                </button>
 
 
-            <button
-              id="deleteProductBtn"
-              type="button"
-              class="danger-btn"
-            >
-              Удалить объявление
-            </button>
+                <button
+                  id="deleteProductBtn"
+                  type="button"
+                  class="danger-btn"
+                >
+                  Удалить объявление
+                </button>
 
-          </div>
+              </div>
+
+            `
+
+            : `
+
+              <div class="admin-danger-row">
+
+                <button
+                  id="showProductBtn"
+                  type="button"
+                  class="secondary-btn full-width-btn"
+                >
+                  Вернуть в каталог
+                </button>
+
+
+                <button
+                  id="deleteProductBtn"
+                  type="button"
+                  class="danger-btn"
+                >
+                  Удалить навсегда
+                </button>
+
+              </div>
+
+            `
+          }
 
         </div>
 
@@ -1273,11 +1323,9 @@ function renderProductSheet() {
 
   `;
 
-
   setupGallery(
     images
   );
-
 
   el(
     'sheetFavoriteBtn'
@@ -1285,48 +1333,50 @@ function renderProductSheet() {
   ?.addEventListener(
     'click',
     () => {
-
       toggleFavorite(
         product.id
       );
 
       renderProductSheet();
-
     }
   );
 
+  el(
+    'shareProductBtn'
+  )
+  ?.addEventListener(
+    'click',
+    () =>
+      shareProduct(
+        product
+      )
+  );
 
   const variantWrap =
     el('variantList');
-
 
   (
     product.variants ||
     []
   ).forEach(
     variant => {
-
       const button =
         document.createElement(
           'button'
         );
-
 
       const variantName =
         variant.size ||
         variant.name ||
         'Размер';
 
-
-      const soldOut =
+      const variantSoldOut =
         Number(
           variant.stock
         ) <= 0;
 
-
       button.type =
         'button';
-
 
       button.className =
         'variant-btn' +
@@ -1339,41 +1389,33 @@ function renderProductSheet() {
         ) +
 
         (
-          soldOut
+          variantSoldOut
             ? ' sold-out'
             : ''
         );
 
-
       button.disabled =
-        soldOut;
-
+        variantSoldOut;
 
       button.textContent =
         variantName;
 
-
       button.addEventListener(
         'click',
         () => {
-
           selectedVariant =
             variant;
 
           renderProductSheet();
-
         }
       );
-
 
       variantWrap
         ?.appendChild(
           button
         );
-
     }
   );
-
 
   el(
     'addToCartBtn'
@@ -1381,16 +1423,13 @@ function renderProductSheet() {
   ?.addEventListener(
     'click',
     () => {
-
       if (
         !selectedVariant
       ) {
         return;
       }
 
-
       cart.push({
-
         productId:
           product.id,
 
@@ -1410,12 +1449,9 @@ function renderProductSheet() {
         image:
           product.image ||
           ''
-
       });
 
-
       updateCartCount();
-
 
       tg
         ?.HapticFeedback
@@ -1423,48 +1459,38 @@ function renderProductSheet() {
           'light'
         );
 
-
       closeAll();
-
     }
   );
 
-
   if (isAdmin) {
-
     renderAdminActionsInProductSheet(
       product
     );
-
   }
-
 }
 
 
 // =========================
-// ГАЛЕРЕЯ + СВАЙП
+// ГАЛЕРЕЯ
 // =========================
 
 function setupGallery(
   images
 ) {
-
   if (
     images.length <= 1
   ) {
     return;
   }
 
-
   let currentImage =
     0;
-
 
   const gallery =
     document.querySelector(
       '.product-gallery'
     );
-
 
   const galleryImages = [
     ...document.querySelectorAll(
@@ -1472,17 +1498,20 @@ function setupGallery(
     )
   ];
 
+  const dots = [
+    ...document.querySelectorAll(
+      '.gallery-dot'
+    )
+  ];
 
   const counter =
     document.querySelector(
       '.gallery-counter'
     );
 
-
   function showImage(
     index
   ) {
-
     galleryImages[
       currentImage
     ]
@@ -1491,6 +1520,13 @@ function setupGallery(
       'active'
     );
 
+    dots[
+      currentImage
+    ]
+    ?.classList
+    .remove(
+      'active'
+    );
 
     currentImage =
       (
@@ -1498,7 +1534,6 @@ function setupGallery(
         galleryImages.length
       ) %
       galleryImages.length;
-
 
     galleryImages[
       currentImage
@@ -1508,16 +1543,19 @@ function setupGallery(
       'active'
     );
 
+    dots[
+      currentImage
+    ]
+    ?.classList
+    .add(
+      'active'
+    );
 
     if (counter) {
-
       counter.textContent =
         `${currentImage + 1} / ${galleryImages.length}`;
-
     }
-
   }
-
 
   document
     .querySelector(
@@ -1531,7 +1569,6 @@ function setupGallery(
         )
     );
 
-
   document
     .querySelector(
       '.gallery-next'
@@ -1544,48 +1581,40 @@ function setupGallery(
         )
     );
 
-
   let touchStartX =
     0;
 
   let touchEndX =
     0;
 
-
   gallery
     ?.addEventListener(
       'touchstart',
       event => {
-
         touchStartX =
           event
             .changedTouches[0]
             ?.screenX ||
           0;
-
       },
       {
         passive: true
       }
     );
 
-
   gallery
     ?.addEventListener(
       'touchend',
       event => {
-
         touchEndX =
           event
             .changedTouches[0]
             ?.screenX ||
           0;
 
-
         const delta =
           touchEndX -
           touchStartX;
-
 
         if (
           Math.abs(delta) <
@@ -1594,98 +1623,123 @@ function setupGallery(
           return;
         }
 
-
-        if (delta < 0) {
-
-          showImage(
-            currentImage + 1
-          );
-
-        }
-
-
-        if (delta > 0) {
-
-          showImage(
-            currentImage - 1
-          );
-
-        }
-
+        showImage(
+          currentImage +
+          (
+            delta < 0
+              ? 1
+              : -1
+          )
+        );
       },
       {
         passive: true
       }
     );
-
 }
 
 
 // =========================
-// EDGE FUNCTION
+// ПОДЕЛИТЬСЯ
 // =========================
 
-async function adminAction(
-  formData
+async function shareProduct(
+  product
 ) {
+  const text =
+    `${product.brand} ${product.name} — ${money(product.price)}`;
 
-  const res =
-    await fetch(
-
-      `${SUPABASE_URL}/functions/v1/admin-product`,
-
-      {
-        method:
-          'POST',
-
-        body:
-          formData
-      }
-
-    );
-
-
-  let data =
-    {};
-
+  const url =
+    window.location.href;
 
   try {
+    if (
+      navigator.share
+    ) {
+      await navigator.share({
+        title:
+          product.name,
 
-    data =
-      await res.json();
+        text,
 
-  } catch {
+        url
+      });
 
-    data = {};
+      return;
+    }
 
+    if (
+      navigator.clipboard
+        ?.writeText
+    ) {
+      await navigator.clipboard.writeText(
+        `${text}\n${url}`
+      );
+
+      alert(
+        'Ссылка на товар скопирована'
+      );
+
+      return;
+    }
+
+    alert(text);
+
+  } catch (err) {
+    if (
+      err?.name !==
+      'AbortError'
+    ) {
+      console.error(err);
+    }
   }
-
-
-  if (!res.ok) {
-
-    throw new Error(
-      data.error ||
-      `Ошибка ${res.status}`
-    );
-
-  }
-
-
-  return data;
-
 }
 
 
-function addAdminAuth(
-  formData
+// =========================
+// СИНХРОНИЗАЦИЯ
+// =========================
+
+function syncProductAcrossLists(
+  product
 ) {
+  const publicIndex =
+    products.findIndex(
+      item =>
+        String(item.id) ===
+        String(product.id)
+    );
 
-  formData.append(
-    'init_data',
-    tg?.initData ||
-    ''
-  );
+  if (
+    publicIndex !== -1
+  ) {
+    products[
+      publicIndex
+    ] =
+      product;
+  }
 
+  const adminIndex =
+    allAdminProducts
+      .findIndex(
+        item =>
+          String(item.id) ===
+          String(product.id)
+      );
+
+  if (
+    adminIndex !== -1
+  ) {
+    allAdminProducts[
+      adminIndex
+    ] = {
+      ...allAdminProducts[
+        adminIndex
+      ],
+
+      ...product
+    };
+  }
 }
 
 
@@ -1696,46 +1750,35 @@ function addAdminAuth(
 function renderAdminActionsInProductSheet(
   product
 ) {
-
   const adminWrap =
     el(
       'adminVariantActions'
     );
 
-
   if (adminWrap) {
-
     adminWrap.innerHTML =
-      `<div class="muted admin-actions-subtitle">
-        Размеры
-      </div>`;
-
+      '<div class="muted admin-actions-subtitle">Размеры</div>';
 
     (
       product.variants ||
       []
     ).forEach(
       variant => {
-
         const sizeName =
           variant.size ||
           variant.name ||
           'Размер';
-
 
         const button =
           document.createElement(
             'button'
           );
 
-
         button.type =
           'button';
 
-
         button.className =
           'secondary-btn admin-size-action';
-
 
         button.textContent =
           Number(
@@ -1746,28 +1789,21 @@ function renderAdminActionsInProductSheet(
 
           : `Вернуть размер ${sizeName}`;
 
-
         button.addEventListener(
           'click',
           async () => {
-
             try {
-
               button.disabled =
                 true;
 
-
               const formData =
                 new FormData();
-
 
               addAdminAuth(
                 formData
               );
 
-
               formData.append(
-
                 'action',
 
                 Number(
@@ -1777,9 +1813,7 @@ function renderAdminActionsInProductSheet(
                   ? 'soldout'
 
                   : 'restore'
-
               );
-
 
               formData.append(
                 'product_id',
@@ -1788,41 +1822,31 @@ function renderAdminActionsInProductSheet(
                 )
               );
 
-
               formData.append(
                 'variant',
                 sizeName
               );
-
 
               const data =
                 await adminAction(
                   formData
                 );
 
-
               if (
                 Array.isArray(
                   data.variants
                 )
               ) {
-
                 product.variants =
                   data.variants;
-
               } else {
-
                 variant.stock =
                   Number(
                     variant.stock
                   ) > 0
-
                     ? 0
-
                     : 1;
-
               }
-
 
               selectedVariant =
                 product.variants
@@ -1834,42 +1858,36 @@ function renderAdminActionsInProductSheet(
                   ) ||
                 null;
 
-
               syncProductAcrossLists(
                 product
               );
-
 
               renderProductSheet();
               renderProducts();
               renderAdminProductList();
 
             } catch (err) {
-
               alert(
                 err.message
               );
 
               button.disabled =
                 false;
-
             }
-
           }
         );
-
 
         adminWrap.appendChild(
           button
         );
-
       }
     );
-
   }
 
 
-  // РЕДАКТИРОВАТЬ
+  // =========================
+  // РЕДАКТИРОВАНИЕ
+  // =========================
 
   el(
     'adminSaveProductBtn'
@@ -1877,6 +1895,23 @@ function renderAdminActionsInProductSheet(
   ?.addEventListener(
     'click',
     async () => {
+      const brand =
+        el(
+          'adminEditBrand'
+        )?.value.trim() ||
+        '';
+
+      const name =
+        el(
+          'adminEditName'
+        )?.value.trim() ||
+        '';
+
+      const categoryValue =
+        el(
+          'adminEditCategory'
+        )?.value ||
+        'Другое';
 
       const price =
         Number(
@@ -1886,55 +1921,47 @@ function renderAdminActionsInProductSheet(
           0
         );
 
-
       const description =
         el(
           'adminEditDescription'
         )?.value.trim() ||
         '';
 
-
       if (
+        !brand ||
+        !name ||
         !price ||
         price <= 0
       ) {
-
         alert(
-          'Укажите корректную цену'
+          'Заполните бренд, название и корректную цену'
         );
 
         return;
       }
-
 
       const button =
         el(
           'adminSaveProductBtn'
         );
 
-
       try {
-
         if (button) {
           button.disabled =
             true;
         }
 
-
         const formData =
           new FormData();
-
 
         addAdminAuth(
           formData
         );
 
-
         formData.append(
           'action',
           'edit'
         );
-
 
         formData.append(
           'product_id',
@@ -1943,71 +1970,89 @@ function renderAdminActionsInProductSheet(
           )
         );
 
+        formData.append(
+          'brand',
+          brand
+        );
+
+        formData.append(
+          'name',
+          name
+        );
+
+        formData.append(
+          'category',
+          categoryValue
+        );
 
         formData.append(
           'price',
           String(price)
         );
 
-
         formData.append(
           'description',
           description
         );
-
 
         const data =
           await adminAction(
             formData
           );
 
-
-        product.price =
-          Number(
-            data.product?.price ??
-            price
-          );
-
-
-        product.description =
+        const updated =
           data.product
-            ?.description ??
-          description;
 
+          ? normalizeProduct(
+              data.product
+            )
+
+          : {
+              ...product,
+              brand,
+              name,
+              category:
+                categoryValue,
+              price,
+              description
+            };
+
+        Object.assign(
+          product,
+          updated
+        );
 
         syncProductAcrossLists(
           product
         );
 
-
+        renderCategories();
+        renderFilters();
         renderProductSheet();
         renderProducts();
         renderAdminProductList();
-
 
         alert(
           'Изменения сохранены'
         );
 
       } catch (err) {
-
         alert(
           err.message
         );
-
 
         if (button) {
           button.disabled =
             false;
         }
-
       }
-
     }
   );
 
 
+  // =========================
   // СКРЫТЬ
+  // =========================
 
   el(
     'hideProductBtn'
@@ -2015,7 +2060,6 @@ function renderAdminActionsInProductSheet(
   ?.addEventListener(
     'click',
     async () => {
-
       if (
         !confirm(
           'Скрыть товар из каталога?'
@@ -2024,23 +2068,18 @@ function renderAdminActionsInProductSheet(
         return;
       }
 
-
       try {
-
         const formData =
           new FormData();
-
 
         addAdminAuth(
           formData
         );
 
-
         formData.append(
           'action',
           'hide'
         );
-
 
         formData.append(
           'product_id',
@@ -2049,61 +2088,112 @@ function renderAdminActionsInProductSheet(
           )
         );
 
+        await adminAction(
+          formData
+        );
+
+        product.active =
+          false;
+
+        products =
+          products.filter(
+            item =>
+              String(item.id) !==
+              String(product.id)
+          );
+
+        syncProductAcrossLists(
+          product
+        );
+
+        closeAll();
+
+        renderCategories();
+        renderFilters();
+        renderProducts();
+        renderAdminProductList();
+
+      } catch (err) {
+        alert(
+          err.message
+        );
+      }
+    }
+  );
+
+
+  // =========================
+  // ВЕРНУТЬ
+  // =========================
+
+  el(
+    'showProductBtn'
+  )
+  ?.addEventListener(
+    'click',
+    async () => {
+      try {
+        const formData =
+          new FormData();
+
+        addAdminAuth(
+          formData
+        );
+
+        formData.append(
+          'action',
+          'show'
+        );
+
+        formData.append(
+          'product_id',
+          String(
+            product.id
+          )
+        );
 
         await adminAction(
           formData
         );
 
+        product.active =
+          true;
 
-        products =
-          products.filter(
+        if (
+          !products.some(
             item =>
-              String(
-                item.id
-              ) !==
-              String(
-                product.id
-              )
+              String(item.id) ===
+              String(product.id)
+          )
+        ) {
+          products.unshift(
+            product
           );
-
-
-        const adminProduct =
-          allAdminProducts.find(
-            item =>
-              String(
-                item.id
-              ) ===
-              String(
-                product.id
-              )
-          );
-
-
-        if (adminProduct) {
-
-          adminProduct.active =
-            false;
-
         }
 
+        syncProductAcrossLists(
+          product
+        );
 
         closeAll();
+
+        renderCategories();
+        renderFilters();
         renderProducts();
         renderAdminProductList();
 
       } catch (err) {
-
         alert(
           err.message
         );
-
       }
-
     }
   );
 
 
+  // =========================
   // УДАЛИТЬ
+  // =========================
 
   el(
     'deleteProductBtn'
@@ -2111,32 +2201,26 @@ function renderAdminActionsInProductSheet(
   ?.addEventListener(
     'click',
     async () => {
-
       if (
         !confirm(
-          'Удалить объявление?'
+          'Удалить товар навсегда?'
         )
       ) {
         return;
       }
 
-
       try {
-
         const formData =
           new FormData();
-
 
         addAdminAuth(
           formData
         );
 
-
         formData.append(
           'action',
           'delete'
         );
-
 
         formData.append(
           'product_id',
@@ -2145,35 +2229,23 @@ function renderAdminActionsInProductSheet(
           )
         );
 
-
         await adminAction(
           formData
         );
 
-
         products =
           products.filter(
             item =>
-              String(
-                item.id
-              ) !==
-              String(
-                product.id
-              )
+              String(item.id) !==
+              String(product.id)
           );
-
 
         allAdminProducts =
           allAdminProducts.filter(
             item =>
-              String(
-                item.id
-              ) !==
-              String(
-                product.id
-              )
+              String(item.id) !==
+              String(product.id)
           );
-
 
         favoriteIds.delete(
           String(
@@ -2181,91 +2253,22 @@ function renderAdminActionsInProductSheet(
           )
         );
 
-
         saveFavorites();
 
-
         closeAll();
+
+        renderCategories();
+        renderFilters();
         renderProducts();
         renderAdminProductList();
 
       } catch (err) {
-
         alert(
           err.message
         );
-
       }
-
     }
   );
-
-}
-
-
-// =========================
-// СИНХРОНИЗАЦИЯ
-// =========================
-
-function syncProductAcrossLists(
-  product
-) {
-
-  const publicIndex =
-    products.findIndex(
-      item =>
-        String(
-          item.id
-        ) ===
-        String(
-          product.id
-        )
-    );
-
-
-  if (
-    publicIndex !== -1
-  ) {
-
-    products[
-      publicIndex
-    ] =
-      product;
-
-  }
-
-
-  const adminIndex =
-    allAdminProducts
-      .findIndex(
-        item =>
-          String(
-            item.id
-          ) ===
-          String(
-            product.id
-          )
-      );
-
-
-  if (
-    adminIndex !== -1
-  ) {
-
-    allAdminProducts[
-      adminIndex
-    ] = {
-
-      ...allAdminProducts[
-        adminIndex
-      ],
-
-      ...product
-
-    };
-
-  }
-
 }
 
 
@@ -2274,58 +2277,42 @@ function syncProductAcrossLists(
 // =========================
 
 function updateCartCount() {
-
   if (
     el('cartCount')
   ) {
-
     el(
       'cartCount'
     ).textContent =
       cart.length;
-
   }
-
 }
 
 
 function renderCart() {
-
   const wrap =
     el('cartItems');
 
-
   if (!wrap) return;
-
 
   wrap.innerHTML = '';
 
-
   if (!cart.length) {
-
     wrap.innerHTML =
-      `<div class="empty">
-        Корзина пока пустая
-      </div>`;
-
+      '<div class="empty">Корзина пока пустая</div>';
   }
-
 
   cart.forEach(
     (
       item,
       index
     ) => {
-
       const row =
         document.createElement(
           'div'
         );
 
-
       row.className =
         'cart-item';
-
 
       row.innerHTML = `
 
@@ -2342,7 +2329,6 @@ function renderCart() {
 
             : ''
           }
-
 
           <div>
 
@@ -2382,14 +2368,11 @@ function renderCart() {
 
       `;
 
-
       wrap.appendChild(
         row
       );
-
     }
   );
-
 
   wrap
     .querySelectorAll(
@@ -2397,11 +2380,9 @@ function renderCart() {
     )
     .forEach(
       button => {
-
         button.addEventListener(
           'click',
           () => {
-
             cart.splice(
               Number(
                 button.dataset.index
@@ -2409,47 +2390,47 @@ function renderCart() {
               1
             );
 
-
             updateCartCount();
             renderCart();
-
           }
         );
-
       }
     );
 
+  if (
+    el('cartTotal')
+  ) {
+    el(
+      'cartTotal'
+    ).textContent =
+      money(
+        cart.reduce(
+          (
+            sum,
+            item
+          ) =>
+            sum +
+            item.price,
+          0
+        )
+      );
+  }
 
-  el(
-    'cartTotal'
-  ).textContent =
-    money(
-      cart.reduce(
-        (
-          sum,
-          item
-        ) =>
-          sum +
-          item.price,
-        0
-      )
-    );
-
-
-  el(
-    'checkoutButton'
-  ).disabled =
-    !cart.length;
-
+  if (
+    el('checkoutButton')
+  ) {
+    el(
+      'checkoutButton'
+    ).disabled =
+      !cart.length;
+  }
 }
 
 
 function openCart() {
-
   renderCart();
 
   openBackdrop();
-
 
   el(
     'cartSheet'
@@ -2458,18 +2439,13 @@ function openCart() {
   .remove(
     'hidden'
   );
-
 }
 
 
 function openCheckout() {
-
-  if (
-    !cart.length
-  ) {
+  if (!cart.length) {
     return;
   }
-
 
   el(
     'cartSheet'
@@ -2479,7 +2455,6 @@ function openCheckout() {
     'hidden'
   );
 
-
   el(
     'checkoutSheet'
   )
@@ -2487,21 +2462,17 @@ function openCheckout() {
   .remove(
     'hidden'
   );
-
 }
 
 
 // =========================
-// СТАРАЯ ЛОГИКА ЗАКАЗА
-// НЕ МЕНЯЕМ
+// ЗАКАЗ
 // =========================
 
 async function submitOrder(
   event
 ) {
-
   event.preventDefault();
-
 
   const telegram =
     el(
@@ -2511,9 +2482,7 @@ async function submitOrder(
     .trim() ||
     '';
 
-
   if (!telegram) {
-
     el(
       'checkoutStatus'
     ).textContent =
@@ -2522,35 +2491,25 @@ async function submitOrder(
     return;
   }
 
-
   const payload = {
-
     telegram_user: {
-
       username:
         telegram.replace(
           /^@/,
           ''
         )
-
     },
-
 
     telegram_init_data:
       tg?.initData ||
       '',
 
-
     customer: {
-
       telegram
-
     },
-
 
     items:
       cart,
-
 
     total:
       cart.reduce(
@@ -2563,35 +2522,25 @@ async function submitOrder(
         0
       ),
 
-
     created_at:
       new Date()
         .toISOString()
-
   };
-
 
   el(
     'checkoutStatus'
   ).textContent =
     'Отправляем заявку...';
 
-
   try {
-
     const res =
       await fetch(
-
         `${SUPABASE_URL}/rest/v1/orders`,
-
         {
-
           method:
             'POST',
 
-
           headers: {
-
             apikey:
               SUPABASE_ANON_KEY,
 
@@ -2603,34 +2552,25 @@ async function submitOrder(
 
             Prefer:
               'return=minimal'
-
           },
-
 
           body:
             JSON.stringify(
               payload
             )
-
         }
-
       );
 
-
     if (!res.ok) {
-
       throw new Error(
         'Не удалось сохранить заказ'
       );
-
     }
-
 
     el(
       'checkoutStatus'
     ).textContent =
       'Заявка создана. Мы свяжемся с вами в Telegram.';
-
 
     tg
       ?.HapticFeedback
@@ -2638,33 +2578,24 @@ async function submitOrder(
         'success'
       );
 
-
     cart.splice(0);
-
 
     updateCartCount();
 
   } catch (err) {
-
-    console.error(
-      err
-    );
-
+    console.error(err);
 
     el(
       'checkoutStatus'
     ).textContent =
       'Ошибка отправки. Попробуйте ещё раз.';
 
-
     tg
       ?.HapticFeedback
       ?.notificationOccurred(
         'error'
       );
-
   }
-
 }
 
 
@@ -2680,7 +2611,6 @@ const POIZON_COMMISSION =
 
 
 function calculatePoizon() {
-
   const yuan =
     Number(
       el(
@@ -2688,7 +2618,6 @@ function calculatePoizon() {
       )?.value
     ) ||
     0;
-
 
   const weight =
     Number(
@@ -2698,7 +2627,6 @@ function calculatePoizon() {
     ) ||
     0;
 
-
   const deliveryRate =
     Number(
       el(
@@ -2707,32 +2635,27 @@ function calculatePoizon() {
     ) ||
     0;
 
-
-  const productTotal =
-    yuan *
-    POIZON_RATE;
-
-
-  const deliveryTotal =
-    weight *
-    deliveryRate;
-
-
   const finalTotal =
-    productTotal +
-    deliveryTotal +
+    yuan *
+    POIZON_RATE +
+
+    weight *
+    deliveryRate +
+
     POIZON_COMMISSION;
 
-
-  el(
-    'poizonFinalTotal'
-  ).textContent =
-    money(
-      Math.round(
-        finalTotal
-      )
-    );
-
+  if (
+    el('poizonFinalTotal')
+  ) {
+    el(
+      'poizonFinalTotal'
+    ).textContent =
+      money(
+        Math.round(
+          finalTotal
+        )
+      );
+  }
 }
 
 
@@ -2742,11 +2665,9 @@ document
   )
   .forEach(
     button => {
-
       button.addEventListener(
         'click',
         () => {
-
           document
             .querySelectorAll(
               '.delivery-option'
@@ -2760,25 +2681,20 @@ document
                   )
             );
 
-
           button
             .classList
             .add(
               'active'
             );
 
-
           el(
             'poizonDelivery'
           ).value =
             button.dataset.rate;
 
-
           calculatePoizon();
-
         }
       );
-
     }
   );
 
@@ -2807,7 +2723,6 @@ el(
 ?.addEventListener(
   'click',
   async () => {
-
     const yuan =
       Number(
         el(
@@ -2815,7 +2730,6 @@ el(
         )?.value
       ) ||
       0;
-
 
     const weight =
       Number(
@@ -2825,7 +2739,6 @@ el(
       ) ||
       0;
 
-
     const deliveryRate =
       Number(
         el(
@@ -2833,7 +2746,6 @@ el(
         )?.value
       ) ||
       0;
-
 
     const telegram =
       el(
@@ -2843,9 +2755,7 @@ el(
       .trim() ||
       '';
 
-
     if (!telegram) {
-
       el(
         'poizonOrderStatus'
       ).textContent =
@@ -2854,12 +2764,10 @@ el(
       return;
     }
 
-
     if (
       !yuan ||
       !weight
     ) {
-
       el(
         'poizonOrderStatus'
       ).textContent =
@@ -2868,26 +2776,16 @@ el(
       return;
     }
 
-
-    const productTotal =
-      yuan *
-      POIZON_RATE;
-
-
-    const deliveryTotal =
-      weight *
-      deliveryRate;
-
-
     const finalTotal =
       Math.round(
+        yuan *
+        POIZON_RATE +
 
-        productTotal +
-        deliveryTotal +
+        weight *
+        deliveryRate +
+
         POIZON_COMMISSION
-
       );
-
 
     const deliveryName =
       deliveryRate ===
@@ -2897,9 +2795,7 @@ el(
 
         : 'Авто';
 
-
     const payload = {
-
       telegram,
 
       price_yuan:
@@ -2916,30 +2812,22 @@ el(
       created_at:
         new Date()
           .toISOString()
-
     };
-
 
     el(
       'poizonOrderStatus'
     ).textContent =
       'Отправляем...';
 
-
     try {
-
       const res =
         await fetch(
-
           `${SUPABASE_URL}/rest/v1/poizon_orders`,
-
           {
-
             method:
               'POST',
 
             headers: {
-
               apikey:
                 SUPABASE_ANON_KEY,
 
@@ -2951,33 +2839,25 @@ el(
 
               Prefer:
                 'return=minimal'
-
             },
 
             body:
               JSON.stringify(
                 payload
               )
-
           }
-
         );
 
-
       if (!res.ok) {
-
         throw new Error(
           'Не удалось сохранить заказ'
         );
-
       }
-
 
       el(
         'poizonOrderStatus'
       ).textContent =
         'Заявка отправлена. Мы свяжемся с вами в Telegram.';
-
 
       tg
         ?.HapticFeedback
@@ -2985,30 +2865,25 @@ el(
           'success'
         );
 
-
       el(
         'poizonPrice'
       ).value =
         '';
-
 
       el(
         'poizonWeight'
       ).value =
         '';
 
-
       el(
         'poizonTelegram'
       ).value =
         '';
 
-
       el(
         'poizonDelivery'
       ).value =
         '850';
-
 
       document
         .querySelectorAll(
@@ -3023,7 +2898,6 @@ el(
               )
         );
 
-
       document
         .querySelector(
           '.delivery-option[data-rate="850"]'
@@ -3033,36 +2907,28 @@ el(
           'active'
         );
 
-
       calculatePoizon();
 
     } catch (err) {
-
-      console.error(
-        err
-      );
-
+      console.error(err);
 
       el(
         'poizonOrderStatus'
       ).textContent =
         'Ошибка отправки. Попробуйте ещё раз.';
 
-
       tg
         ?.HapticFeedback
         ?.notificationOccurred(
           'error'
         );
-
     }
-
   }
 );
 
 
 // =========================
-// ПЕРЕКЛЮЧЕНИЕ РАЗДЕЛОВ
+// РАЗДЕЛЫ
 // =========================
 
 const stockBtn =
@@ -3097,13 +2963,11 @@ const adminSection =
 
 
 function showStockSection() {
-
   stockBtn
     ?.classList
     .add(
       'active'
     );
-
 
   poizonBtn
     ?.classList
@@ -3111,13 +2975,11 @@ function showStockSection() {
       'active'
     );
 
-
   adminBtn
     ?.classList
     .remove(
       'active'
     );
-
 
   stockSection
     ?.classList
@@ -3125,31 +2987,26 @@ function showStockSection() {
       'hidden'
     );
 
-
   poizonSection
     ?.classList
     .add(
       'hidden'
     );
 
-
   adminSection
     ?.classList
     .add(
       'hidden'
     );
-
 }
 
 
 function showPoizonSection() {
-
   poizonBtn
     ?.classList
     .add(
       'active'
     );
-
 
   stockBtn
     ?.classList
@@ -3157,13 +3014,11 @@ function showPoizonSection() {
       'active'
     );
 
-
   adminBtn
     ?.classList
     .remove(
       'active'
     );
-
 
   stockSection
     ?.classList
@@ -3171,29 +3026,24 @@ function showPoizonSection() {
       'hidden'
     );
 
-
   poizonSection
     ?.classList
     .remove(
       'hidden'
     );
 
-
   adminSection
     ?.classList
     .add(
       'hidden'
     );
-
 }
 
 
 async function showAdminSection() {
-
   if (!isAdmin) {
     return;
   }
-
 
   adminBtn
     ?.classList
@@ -3201,13 +3051,11 @@ async function showAdminSection() {
       'active'
     );
 
-
   stockBtn
     ?.classList
     .remove(
       'active'
     );
-
 
   poizonBtn
     ?.classList
@@ -3215,13 +3063,11 @@ async function showAdminSection() {
       'active'
     );
 
-
   stockSection
     ?.classList
     .add(
       'hidden'
     );
-
 
   poizonSection
     ?.classList
@@ -3229,16 +3075,13 @@ async function showAdminSection() {
       'hidden'
     );
 
-
   adminSection
     ?.classList
     .remove(
       'hidden'
     );
 
-
   await loadAdminProducts();
-
 }
 
 
@@ -3291,12 +3134,10 @@ el(
 ?.addEventListener(
   'change',
   event => {
-
     selectedBrand =
       event.target.value;
 
     renderProducts();
-
   }
 );
 
@@ -3307,12 +3148,100 @@ el(
 ?.addEventListener(
   'change',
   event => {
-
     selectedSize =
       event.target.value;
 
     renderProducts();
+  }
+);
 
+
+el(
+  'minPriceFilter'
+)
+?.addEventListener(
+  'input',
+  renderProducts
+);
+
+
+el(
+  'maxPriceFilter'
+)
+?.addEventListener(
+  'input',
+  renderProducts
+);
+
+
+el(
+  'resetFiltersBtn'
+)
+?.addEventListener(
+  'click',
+  () => {
+    category =
+      'Все';
+
+    selectedBrand =
+      'Все';
+
+    selectedSize =
+      'Все';
+
+    if (
+      el('searchInput')
+    ) {
+      el(
+        'searchInput'
+      ).value = '';
+    }
+
+    if (
+      el('brandFilter')
+    ) {
+      el(
+        'brandFilter'
+      ).value =
+        'Все';
+    }
+
+    if (
+      el('sizeFilter')
+    ) {
+      el(
+        'sizeFilter'
+      ).value =
+        'Все';
+    }
+
+    if (
+      el('minPriceFilter')
+    ) {
+      el(
+        'minPriceFilter'
+      ).value = '';
+    }
+
+    if (
+      el('maxPriceFilter')
+    ) {
+      el(
+        'maxPriceFilter'
+      ).value = '';
+    }
+
+    if (
+      el('sortSelect')
+    ) {
+      el(
+        'sortSelect'
+      ).value =
+        'newest';
+    }
+
+    renderCategories();
+    renderProducts();
   }
 );
 
@@ -3323,10 +3252,8 @@ el(
 ?.addEventListener(
   'click',
   () => {
-
     favoritesOnly =
       !favoritesOnly;
-
 
     el(
       'favoritesButton'
@@ -3337,10 +3264,8 @@ el(
       favoritesOnly
     );
 
-
     showStockSection();
     renderProducts();
-
   }
 );
 
@@ -3350,15 +3275,12 @@ el(
 // =========================
 
 function resetAdminVariants() {
-
   const wrap =
     el(
       'adminVariants'
     );
 
-
   if (!wrap) return;
-
 
   wrap.innerHTML = `
 
@@ -3369,7 +3291,6 @@ function resetAdminVariants() {
         type="text"
         placeholder="Размер, например M"
       >
-
 
       <input
         class="adminVariantStock"
@@ -3382,7 +3303,6 @@ function resetAdminVariants() {
     </div>
 
   `;
-
 }
 
 
@@ -3392,16 +3312,13 @@ el(
 ?.addEventListener(
   'click',
   () => {
-
     const row =
       document.createElement(
         'div'
       );
 
-
     row.className =
       'admin-variant-row';
-
 
     row.innerHTML = `
 
@@ -3411,7 +3328,6 @@ el(
         placeholder="Размер, например L"
       >
 
-
       <input
         class="adminVariantStock"
         type="number"
@@ -3419,7 +3335,6 @@ el(
         value="1"
         placeholder="Количество"
       >
-
 
       <button
         type="button"
@@ -3429,7 +3344,6 @@ el(
       </button>
 
     `;
-
 
     row
       .querySelector(
@@ -3441,20 +3355,18 @@ el(
           row.remove()
       );
 
-
     el(
       'adminVariants'
     )
     ?.appendChild(
       row
     );
-
   }
 );
 
 
 // =========================
-// ПРЕВЬЮ ФОТО
+// ФОТО PREVIEW
 // =========================
 
 el(
@@ -3463,7 +3375,6 @@ el(
 ?.addEventListener(
   'change',
   () => {
-
     const files = [
       ...(
         el(
@@ -3473,65 +3384,51 @@ el(
       )
     ];
 
-
     const preview =
       el(
         'adminImagePreview'
       );
 
-
     if (!preview) return;
 
-
     preview.innerHTML = '';
-
 
     if (
       files.length > 5
     ) {
-
       el(
         'adminStatus'
       ).textContent =
         'Максимум 5 фотографий';
-
 
       el(
         'adminImages'
       ).value =
         '';
 
-
       return;
     }
 
-
     files.forEach(
       file => {
-
         const img =
           document.createElement(
             'img'
           );
-
 
         img.src =
           URL.createObjectURL(
             file
           );
 
-
         img.alt =
           'Предпросмотр';
-
 
         preview.appendChild(
           img
         );
-
       }
     );
-
   }
 );
 
@@ -3546,11 +3443,9 @@ el(
 ?.addEventListener(
   'click',
   async () => {
-
     if (!isAdmin) {
       return;
     }
-
 
     const brand =
       el(
@@ -3558,20 +3453,17 @@ el(
       )?.value.trim() ||
       '';
 
-
     const name =
       el(
         'adminName'
       )?.value.trim() ||
       '';
 
-
     const categoryValue =
       el(
         'adminCategory'
       )?.value ||
       'Одежда';
-
 
     const price =
       Number(
@@ -3581,13 +3473,11 @@ el(
         0
       );
 
-
     const description =
       el(
         'adminDescription'
       )?.value.trim() ||
       '';
-
 
     const files = [
       ...(
@@ -3598,20 +3488,17 @@ el(
       )
     ];
 
-
     const sizeInputs = [
       ...document.querySelectorAll(
         '.adminVariantSize'
       )
     ];
 
-
     const stockInputs = [
       ...document.querySelectorAll(
         '.adminVariantStock'
       )
     ];
-
 
     const variants =
       sizeInputs
@@ -3621,11 +3508,8 @@ el(
           input,
           index
         ) => ({
-
           size:
-            input
-              .value
-              .trim(),
+            input.value.trim(),
 
           stock:
             Number(
@@ -3634,7 +3518,6 @@ el(
               ]?.value ||
               0
             )
-
         })
       )
 
@@ -3644,14 +3527,12 @@ el(
           variant.stock > 0
       );
 
-
     if (
       !brand ||
       !name ||
       !price ||
       !variants.length
     ) {
-
       el(
         'adminStatus'
       ).textContent =
@@ -3660,11 +3541,9 @@ el(
       return;
     }
 
-
     if (
       !files.length
     ) {
-
       el(
         'adminStatus'
       ).textContent =
@@ -3673,11 +3552,9 @@ el(
       return;
     }
 
-
     if (
       files.length > 5
     ) {
-
       el(
         'adminStatus'
       ).textContent =
@@ -3686,73 +3563,58 @@ el(
       return;
     }
 
-
     const button =
       el(
         'adminAddProductBtn'
       );
 
-
     try {
-
       if (button) {
-
         button.disabled =
           true;
-
       }
-
 
       el(
         'adminStatus'
       ).textContent =
         'Добавляем товар...';
 
-
       const formData =
         new FormData();
-
 
       addAdminAuth(
         formData
       );
-
 
       formData.append(
         'action',
         'create'
       );
 
-
       formData.append(
         'brand',
         brand
       );
-
 
       formData.append(
         'name',
         name
       );
 
-
       formData.append(
         'category',
         categoryValue
       );
-
 
       formData.append(
         'price',
         String(price)
       );
 
-
       formData.append(
         'description',
         description
       );
-
 
       formData.append(
         'variants',
@@ -3760,7 +3622,6 @@ el(
           variants
         )
       );
-
 
       files.forEach(
         file =>
@@ -3770,67 +3631,53 @@ el(
           )
       );
 
-
       await adminAction(
         formData
       );
-
 
       el(
         'adminStatus'
       ).textContent =
         'Товар добавлен';
 
-
       el(
         'adminBrand'
       ).value =
         '';
-
 
       el(
         'adminName'
       ).value =
         '';
 
-
       el(
         'adminPrice'
       ).value =
         '';
-
 
       el(
         'adminDescription'
       ).value =
         '';
 
-
       el(
         'adminImages'
       ).value =
         '';
-
 
       el(
         'adminImagePreview'
       ).innerHTML =
         '';
 
-
       resetAdminVariants();
-
 
       await tryLoadSupabaseProducts();
 
       await loadAdminProducts();
 
     } catch (err) {
-
-      console.error(
-        err
-      );
-
+      console.error(err);
 
       el(
         'adminStatus'
@@ -3838,31 +3685,93 @@ el(
         err.message;
 
     } finally {
-
       if (button) {
-
         button.disabled =
           false;
-
       }
-
     }
-
   }
 );
 
 
 // =========================
-// АДМИН — СПИСОК
+// АДМИН COUNTS
+// =========================
+
+function updateAdminCounts() {
+  const activeCount =
+    allAdminProducts
+      .filter(
+        product =>
+          product.active
+      )
+      .length;
+
+  const hiddenCount =
+    allAdminProducts
+      .filter(
+        product =>
+          !product.active
+      )
+      .length;
+
+  if (
+    el('adminActiveCount')
+  ) {
+    el(
+      'adminActiveCount'
+    ).textContent =
+      activeCount;
+  }
+
+  if (
+    el('adminHiddenCount')
+  ) {
+    el(
+      'adminHiddenCount'
+    ).textContent =
+      hiddenCount;
+  }
+}
+
+
+function setAdminMode(
+  mode
+) {
+  adminMode =
+    mode;
+
+  el(
+    'adminActiveTab'
+  )
+  ?.classList
+  .toggle(
+    'active',
+    mode === 'active'
+  );
+
+  el(
+    'adminHiddenTab'
+  )
+  ?.classList
+  .toggle(
+    'active',
+    mode === 'hidden'
+  );
+
+  renderAdminProductList();
+}
+
+
+// =========================
+// АДМИН СПИСОК
 // =========================
 
 function renderAdminProductList() {
-
   const wrap =
     el(
       'adminProductList'
     );
-
 
   if (
     !wrap ||
@@ -3871,6 +3780,7 @@ function renderAdminProductList() {
     return;
   }
 
+  updateAdminCounts();
 
   const q =
     el(
@@ -3881,76 +3791,72 @@ function renderAdminProductList() {
     .toLowerCase() ||
     '';
 
-
   const list =
     allAdminProducts.filter(
-      product =>
+      product => {
+        const modeOk =
+          adminMode === 'active'
+            ? product.active
+            : !product.active;
 
-        !q ||
+        const searchOk =
+          !q ||
 
-        product.name
-          .toLowerCase()
-          .includes(q) ||
+          product.name
+            .toLowerCase()
+            .includes(q) ||
 
-        product.brand
-          .toLowerCase()
-          .includes(q)
+          product.brand
+            .toLowerCase()
+            .includes(q);
 
+        return (
+          modeOk &&
+          searchOk
+        );
+      }
     );
-
 
   wrap.innerHTML = '';
 
-
-  if (
-    !list.length
-  ) {
-
+  if (!list.length) {
     wrap.innerHTML =
       `<div class="empty">
-        Товары не найдены
+        ${
+          adminMode === 'active'
+            ? 'Активных товаров нет'
+            : 'Скрытых товаров нет'
+        }
       </div>`;
 
     return;
   }
 
-
   list.forEach(
     product => {
-
       const row =
         document.createElement(
           'div'
         );
 
-
       row.className =
         'admin-product-row';
-
 
       const activeSizes =
         (
           product.variants ||
           []
         )
-
         .filter(
           v =>
-            Number(
-              v.stock
-            ) > 0
+            Number(v.stock) > 0
         )
-
         .map(
           v =>
             v.size ||
             v.name
         )
-
-        .filter(
-          Boolean
-        );
-
+        .filter(Boolean);
 
       row.innerHTML = `
 
@@ -3960,21 +3866,17 @@ function renderAdminProductList() {
             product.image
 
             ? `
-
               <img
                 class="admin-product-thumb"
                 src="${escapeHtml(product.image)}"
                 alt="${escapeHtml(product.name)}"
               >
-
             `
 
             : `
-
               <div class="admin-product-thumb admin-product-thumb-empty">
                 □
               </div>
-
             `
           }
 
@@ -3996,23 +3898,23 @@ function renderAdminProductList() {
             <div class="muted">
 
               ${
-                product.active
-                  ? 'В каталоге'
-                  : 'Скрыт'
-              }
+                productSoldOut(
+                  product
+                )
 
-              ${
-                activeSizes.length
+                ? 'Продано'
 
-                ? ` · ${
-                    activeSizes
-                      .map(
-                        escapeHtml
-                      )
-                      .join(', ')
-                  }`
+                : (
+                    activeSizes.length
 
-                : ' · Нет размеров в наличии'
+                    ? activeSizes
+                        .map(
+                          escapeHtml
+                        )
+                        .join(', ')
+
+                    : 'Нет размеров'
+                  )
               }
 
             </div>
@@ -4038,13 +3940,11 @@ function renderAdminProductList() {
             data-action="toggle"
             type="button"
           >
-
             ${
               product.active
                 ? 'Скрыть'
                 : 'Вернуть'
             }
-
           </button>
 
 
@@ -4060,9 +3960,6 @@ function renderAdminProductList() {
 
       `;
 
-
-      // РЕДАКТИРОВАТЬ
-
       row
         .querySelector(
           '[data-action="open"]'
@@ -4070,10 +3967,8 @@ function renderAdminProductList() {
         ?.addEventListener(
           'click',
           () => {
-
             selectedProduct =
               product;
-
 
             selectedVariant =
               (
@@ -4082,17 +3977,13 @@ function renderAdminProductList() {
               )
               .find(
                 v =>
-                  Number(
-                    v.stock
-                  ) > 0
+                  Number(v.stock) > 0
               ) ||
               null;
-
 
             renderProductSheet();
 
             openBackdrop();
-
 
             el(
               'productSheet'
@@ -4101,12 +3992,8 @@ function renderAdminProductList() {
             .remove(
               'hidden'
             );
-
           }
         );
-
-
-      // СКРЫТЬ / ВЕРНУТЬ
 
       row
         .querySelector(
@@ -4115,36 +4002,27 @@ function renderAdminProductList() {
         ?.addEventListener(
           'click',
           async event => {
-
             const button =
               event.currentTarget;
 
-
             try {
-
               button.disabled =
                 true;
 
-
               const formData =
                 new FormData();
-
 
               addAdminAuth(
                 formData
               );
 
-
               formData.append(
-
                 'action',
 
                 product.active
                   ? 'hide'
                   : 'show'
-
               );
-
 
               formData.append(
                 'product_id',
@@ -4153,77 +4031,51 @@ function renderAdminProductList() {
                 )
               );
 
-
               await adminAction(
                 formData
               );
 
-
               product.active =
                 !product.active;
-
 
               if (
                 product.active
               ) {
-
-                const exists =
-                  products.some(
+                if (
+                  !products.some(
                     item =>
-                      String(
-                        item.id
-                      ) ===
-                      String(
-                        product.id
-                      )
-                  );
-
-
-                if (!exists) {
-
+                      String(item.id) ===
+                      String(product.id)
+                  )
+                ) {
                   products.unshift(
                     product
                   );
-
                 }
-
               } else {
-
                 products =
                   products.filter(
                     item =>
-                      String(
-                        item.id
-                      ) !==
-                      String(
-                        product.id
-                      )
+                      String(item.id) !==
+                      String(product.id)
                   );
-
               }
 
-
+              renderCategories();
+              renderFilters();
               renderProducts();
-
               renderAdminProductList();
 
             } catch (err) {
-
               alert(
                 err.message
               );
 
-
               button.disabled =
                 false;
-
             }
-
           }
         );
-
-
-      // УДАЛИТЬ
 
       row
         .querySelector(
@@ -4232,32 +4084,26 @@ function renderAdminProductList() {
         ?.addEventListener(
           'click',
           async () => {
-
             if (
               !confirm(
-                `Удалить «${product.name}»?`
+                `Удалить «${product.name}» навсегда?`
               )
             ) {
               return;
             }
 
-
             try {
-
               const formData =
                 new FormData();
-
 
               addAdminAuth(
                 formData
               );
 
-
               formData.append(
                 'action',
                 'delete'
               );
-
 
               formData.append(
                 'product_id',
@@ -4266,35 +4112,23 @@ function renderAdminProductList() {
                 )
               );
 
-
               await adminAction(
                 formData
               );
 
-
               products =
                 products.filter(
                   item =>
-                    String(
-                      item.id
-                    ) !==
-                    String(
-                      product.id
-                    )
+                    String(item.id) !==
+                    String(product.id)
                 );
-
 
               allAdminProducts =
                 allAdminProducts.filter(
                   item =>
-                    String(
-                      item.id
-                    ) !==
-                    String(
-                      product.id
-                    )
+                    String(item.id) !==
+                    String(product.id)
                 );
-
 
               favoriteIds.delete(
                 String(
@@ -4302,39 +4136,56 @@ function renderAdminProductList() {
                 )
               );
 
-
               saveFavorites();
 
-
+              renderCategories();
+              renderFilters();
               renderProducts();
-
               renderAdminProductList();
 
             } catch (err) {
-
               alert(
                 err.message
               );
-
             }
-
           }
         );
-
 
       wrap.appendChild(
         row
       );
-
     }
   );
-
 }
 
 
 // =========================
-// СОБЫТИЯ АДМИНКИ
+// ADMIN EVENTS
 // =========================
+
+el(
+  'adminActiveTab'
+)
+?.addEventListener(
+  'click',
+  () =>
+    setAdminMode(
+      'active'
+    )
+);
+
+
+el(
+  'adminHiddenTab'
+)
+?.addEventListener(
+  'click',
+  () =>
+    setAdminMode(
+      'hidden'
+    )
+);
+
 
 el(
   'adminProductSearch'
@@ -4422,48 +4273,7 @@ el(
 
 
 // =========================
-// HTML ESCAPE
-// =========================
-
-function escapeHtml(
-  value
-) {
-
-  return String(
-    value ??
-    ''
-  )
-
-  .replace(
-    /&/g,
-    '&amp;'
-  )
-
-  .replace(
-    /</g,
-    '&lt;'
-  )
-
-  .replace(
-    />/g,
-    '&gt;'
-  )
-
-  .replace(
-    /"/g,
-    '&quot;'
-  )
-
-  .replace(
-    /'/g,
-    '&#039;'
-  );
-
-}
-
-
-// =========================
-// СТАРТ
+// START
 // =========================
 
 updateFavoritesCount();

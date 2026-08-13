@@ -813,17 +813,8 @@ function renderProducts() {
           </button>
 
 
-          ${
-            isNewProduct(
-              product
-            )
-
-            ? `<div class="product-badge">
-                 Новинка
-               </div>`
-
-            : ''
-          }
+          
+      
 
         </div>
 

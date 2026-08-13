@@ -1,7 +1,43 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 const tg = window.Telegram?.WebApp;
+// =========================
+// СТАТИСТИКА ПОСЕЩЕНИЙ
+// =========================
 
+async function trackVisit() {
+  if (!tg?.initData) {
+    console.log('Visit not tracked: Telegram initData unavailable');
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/track-visit`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          init_data: tg.initData,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Visit tracking error:', error);
+      return;
+    }
+
+    console.log('Visit tracked');
+  } catch (error) {
+    console.error('Visit tracking failed:', error);
+  }
+}
+
+trackVisit();
 if (tg) {
   tg.ready();
   tg.expand();

@@ -83,6 +83,7 @@ function renderProducts(){
     const card=document.createElement('button'); card.type='button'; card.className='product-card';
     const visual=p.image?`<img src="${p.image}" alt="${p.name}">`:`${p.icon}`;
     card.innerHTML=`<div class="product-image">${visual}</div><div class="brand">${p.brand}</div><div class="product-name">${p.name}</div><div class="price">${money(p.price)}</div>`;
+ card.addEventListener('click', () => openProduct(p));
     el('productGrid').appendChild(card);
   });
 }

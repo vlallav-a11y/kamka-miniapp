@@ -188,7 +188,7 @@ function renderProductSheet() {
     const b=document.createElement('button'); b.type='button'; b.className='variant-btn'+(selectedVariant===v?' active':''); b.disabled=Number(v.stock)<1; b.textContent = v.size || v.name;
     b.addEventListener('click',()=>{selectedVariant=v;renderProductSheet();}); wrap.appendChild(b);
   });
-  el('variantStock').textContent=selectedVariant?`Осталось: ${selectedVariant.stock} шт.`:'Нет в наличии';
+el('variantStock').textContent = '';
   el('addToCartBtn').addEventListener('click',()=>{
     if(!selectedVariant) return;
     cart.push({productId:p.id,brand:p.brand,name:p.name,variant:selectedVariant.size || selectedVariant.name,price:p.price});

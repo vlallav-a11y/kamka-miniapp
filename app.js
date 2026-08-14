@@ -3026,6 +3026,11 @@ const adminBtn =
 // =========================
 
 el('customOrderSectionBtn')?.addEventListener('click', () => {
+    hideMainSections();
+
+  el('customOrderSection')?.classList.remove('hidden');
+  el('customOrderSectionBtn')?.classList.add('active');
+});
   el('customOrderSubmit')?.addEventListener('click', async () => {
   const button = el('customOrderSubmit');
   const status = el('customOrderStatus');
@@ -3159,14 +3164,22 @@ const adminSection =
   );
 
 function hideMainSections() {
-  document.querySelector('.hero')?.classList.add('hidden');
-  document.querySelector('.controls')?.classList.add('hidden');
+  [
+    'stockSection',
+    'poizonSection',
+    'adminSection',
+    'customOrderSection',
+    'myOrdersSection'
+  ].forEach(id => {
+    el(id)?.classList.add('hidden');
+  });
 
-  const productGrid = el('productGrid');
-
-  if (productGrid) {
-    productGrid.closest('section')?.classList.add('hidden');
-  }
+  document
+    .querySelectorAll('.service-card')
+    .forEach(button => {
+      button.classList.remove('active');
+    });
+}
 
   el('poizonSection')?.classList.add('hidden');
   el('adminSection')?.classList.add('hidden');
@@ -3180,11 +3193,11 @@ function hideMainSections() {
     });
 }
 function showStockSection() {
-  stockBtn
-    ?.classList
-    .add(
-      'active'
-    );
+  hideMainSections();
+
+  el('stockSection')?.classList.remove('hidden');
+  el('stockSectionBtn')?.classList.add('active');
+}
 
   poizonBtn
     ?.classList
@@ -3219,12 +3232,11 @@ function showStockSection() {
 
 
 function showPoizonSection() {
-  poizonBtn
-    ?.classList
-    .add(
-      'active'
-    );
+  hideMainSections();
 
+  el('poizonSection')?.classList.remove('hidden');
+  el('poizonSectionBtn')?.classList.add('active');
+}
   stockBtn
     ?.classList
     .remove(
@@ -3258,9 +3270,16 @@ function showPoizonSection() {
 
 
 async function showAdminSection() {
-  if (!isAdmin) {
-    return;
-  }
+  if (!isAdmin) return;
+
+  hideMainSections();
+
+  el('adminSection')?.classList.remove('hidden');
+  el('adminSectionBtn')?.classList.add('active');
+
+  await loadAdminProducts();
+  await loadAdminStats();
+}
 
   adminBtn
     ?.classList

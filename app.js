@@ -5023,7 +5023,157 @@ el('refreshAdminOrdersBtn')
     'click',
     loadAdminOrders
   );
+// =========================
+// ПУБЛИКАЦИЯ В TELEGRAM-КАНАЛ
+// =========================
 
+el('publishChannelPostBtn')
+  ?.addEventListener(
+    'click',
+    async () => {
+      if (!isAdmin) {
+        return;
+      }
+
+      const button =
+        el('publishChannelPostBtn');
+
+      const status =
+        el('channelPostStatus');
+
+      const text =
+        el('channelPostText')
+          ?.value
+          .trim() ||
+        '';
+
+      const withButton =
+        el('channelPostWithButton')
+          ?.checked ??
+        true;
+
+      if (!text) {
+        if (status) {
+          status.textContent =
+            'Напиши текст поста.';
+        }
+
+        return;
+      }
+
+      const confirmed =
+        confirm(
+          'Опубликовать этот пост в @kamkastore?'
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      if (button) {
+        button.disabled = true;
+        button.textContent =
+          'Публикуем...';
+      }
+
+      if (status) {
+        status.textContent = '';
+      }
+
+      try {
+        const response =
+          await fetch(
+            `${SUPABASE_URL}/functions/v1/channel-post`,
+            {
+              method: 'POST',
+
+              headers: {
+                'Content-Type':
+                  'application/json',
+
+                apikey:
+                  SUPABASE_ANON_KEY,
+
+                Authorization:
+                  `Bearer ${SUPABASE_ANON_KEY}`
+              },
+
+              body:
+                JSON.stringify({
+                  text,
+                  with_button:
+                    withButton
+                })
+            }
+          );
+
+        const rawText =
+          await response.text();
+
+        let data = {};
+
+        try {
+          data =
+            rawText
+              ? JSON.parse(rawText)
+              : {};
+        } catch {
+          data = {};
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+            data.telegram?.description ||
+            rawText ||
+            `Ошибка ${response.status}`
+          );
+        }
+
+        if (status) {
+          status.textContent =
+            'Пост опубликован.';
+        }
+
+        if (
+          el('channelPostText')
+        ) {
+          el(
+            'channelPostText'
+          ).value = '';
+        }
+
+        tg
+          ?.HapticFeedback
+          ?.notificationOccurred(
+            'success'
+          );
+
+      } catch (error) {
+        console.error(error);
+
+        if (status) {
+          status.textContent =
+            error instanceof Error
+              ? error.message
+              : 'Не удалось опубликовать пост';
+        }
+
+        tg
+          ?.HapticFeedback
+          ?.notificationOccurred(
+            'error'
+          );
+
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent =
+            'Опубликовать в @kamkastore';
+        }
+      }
+    }
+  );
 // =========================
 // START
 // =========================

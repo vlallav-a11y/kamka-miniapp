@@ -1478,3 +1478,63 @@ select,
 .admin-order-contact-btn {
   width: 100%;
 }
+/* =========================
+   CHANNEL POST
+========================= */
+
+.channel-post-card {
+  margin-top: 18px;
+}
+
+.channel-post-card h2 {
+  margin: 6px 0 8px;
+}
+
+.channel-post-card label {
+  display: grid;
+  gap: 7px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.channel-post-card textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #fafafa;
+  border-radius: 14px;
+  padding: 14px 15px;
+  outline: none;
+  resize: vertical;
+  min-height: 140px;
+}
+
+.channel-post-card textarea:focus {
+  border-color: #111;
+  background: #fff;
+}
+
+.channel-post-checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.channel-post-checkbox input {
+  width: 18px !important;
+  height: 18px;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+#publishChannelPostBtn {
+  margin-top: 4px;
+}
+
+#channelPostStatus {
+  margin-top: 10px;
+  text-align: center;
+}

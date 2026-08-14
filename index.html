@@ -585,6 +585,58 @@
     <section
       id="adminSection"
       class="admin-section hidden"
+      <div class="admin-card admin-orders-card">
+
+  <div class="eyebrow">ЗАКАЗЫ</div>
+
+  <div class="admin-orders-head">
+    <div>
+      <h2>Заявки клиентов</h2>
+      <p class="muted">
+        Управление заказами и их статусами
+      </p>
+    </div>
+
+    <button
+      id="refreshAdminOrdersBtn"
+      class="secondary-btn"
+      type="button"
+    >
+      Обновить
+    </button>
+  </div>
+
+  <div class="admin-order-tabs">
+
+    <button
+      id="adminOrdersActiveTab"
+      class="tab active"
+      type="button"
+    >
+      Активные
+    </button>
+
+    <button
+      id="adminOrdersCompletedTab"
+      class="tab"
+      type="button"
+    >
+      Завершённые
+    </button>
+
+  </div>
+
+  <p
+    id="adminOrdersStatus"
+    class="muted"
+  ></p>
+
+  <div
+    id="adminOrdersList"
+    class="admin-orders-list"
+  ></div>
+
+</div>
     >
 
       <div class="admin-layout">

@@ -133,6 +133,11 @@
     <span class="service-text">Управление магазином</span>
   </button>
 
+
+
+
+
+     
 </section>
 
     </section>
@@ -581,7 +586,52 @@
     <!-- =========================
          АДМИН-ПАНЕЛЬ
     ========================== -->
+<div class="admin-card channel-post-card">
 
+  <div class="eyebrow">ПУБЛИКАЦИЯ В КАНАЛ</div>
+
+  <h2>Новый пост</h2>
+
+  <p class="muted">
+    Напиши текст поста. Бот опубликует его в @kamkastore.
+  </p>
+
+  <label>
+    Текст поста
+
+    <textarea
+      id="channelPostText"
+      rows="6"
+      placeholder="Напиши текст поста..."
+    ></textarea>
+  </label>
+
+  <label class="channel-post-checkbox">
+    <input
+      id="channelPostWithButton"
+      type="checkbox"
+      checked
+    >
+
+    <span>
+      Добавить кнопку «АКТУАЛЬНОЕ НАЛИЧИЕ»
+    </span>
+  </label>
+
+  <button
+    id="publishChannelPostBtn"
+    class="primary-btn"
+    type="button"
+  >
+    Опубликовать в @kamkastore
+  </button>
+
+  <p
+    id="channelPostStatus"
+    class="muted"
+  ></p>
+
+</div>
     <section
       id="adminSection"
       class="admin-section hidden"

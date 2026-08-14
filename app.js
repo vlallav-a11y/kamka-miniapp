@@ -3196,12 +3196,14 @@ headers: {
         const data =
           await response.json();
 
-        if (!response.ok) {
-          throw new Error(
-            data.error ||
-            'Не удалось отправить заявку'
-          );
-        }
+       if (!response.ok) {
+  console.error('MY ORDERS ERROR:', data);
+
+  throw new Error(
+    data.error ||
+    `Ошибка ${response.status}`
+  );
+}
 
         status.textContent =
           `Заявка №${data.order.id} отправлена`;
@@ -3419,7 +3421,13 @@ async function loadMyOrders() {
     console.error(error);
 
     list.innerHTML =
-      '<div class="empty">Не удалось загрузить заказы.</div>';
+  `<div class="empty">
+    ${escapeHtml(
+      error instanceof Error
+        ? error.message
+        : 'Не удалось загрузить заказы'
+    )}
+  </div>`;
 
     if (status) {
       status.textContent =

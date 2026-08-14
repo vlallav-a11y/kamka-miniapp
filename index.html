@@ -586,6 +586,594 @@
     <!-- =========================
          АДМИН-ПАНЕЛЬ
     ========================== -->
+<!doctype html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
+
+  <title>KAMKA STORE</title>
+
+  <link
+    rel="stylesheet"
+    href="./styles.css?v=5"
+  >
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+
+
+<body>
+
+  <main class="app">
+
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <header class="topbar">
+
+      <div>
+
+        <div class="eyebrow">
+          Telegram Mini App
+        </div>
+
+        <h1>
+          KAMKA STORE
+        </h1>
+
+      </div>
+
+
+      <div class="topbar-actions">
+
+        <button
+          id="favoritesButton"
+          class="icon-btn"
+          type="button"
+        >
+          Избранное
+
+          <span id="favoritesCount">
+            0
+          </span>
+        </button>
+
+
+        <button
+          id="cartButton"
+          class="icon-btn"
+          type="button"
+        >
+          Корзина
+
+          <span id="cartCount">
+            0
+          </span>
+        </button>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- =========================
+         ГЛАВНОЕ МЕНЮ
+    ========================== -->
+
+   <section class="service-menu">
+
+  <button
+    id="stockSectionBtn"
+    class="service-card active"
+    type="button"
+  >
+    <span class="service-title">В наличии</span>
+    <span class="service-text">Посмотреть актуальные товары</span>
+  </button>
+
+  <button
+    id="poizonSectionBtn"
+    class="service-card"
+    type="button"
+  >
+    <span class="service-title">Заказ с Poizon</span>
+    <span class="service-text">Рассчитать стоимость заказа</span>
+  </button>
+
+  <button
+    id="customOrderSectionBtn"
+    class="service-card"
+    type="button"
+  >
+    <span class="service-title">Под заказ</span>
+    <span class="service-text">Найти и привезти нужную вещь</span>
+  </button>
+
+  <button
+    id="myOrdersSectionBtn"
+    class="service-card"
+    type="button"
+  >
+    <span class="service-title">Мои заказы</span>
+    <span class="service-text">Посмотреть статус заказов</span>
+  </button>
+
+  <button
+    id="adminSectionBtn"
+    class="service-card hidden"
+    type="button"
+  >
+    <span class="service-title">Админ</span>
+    <span class="service-text">Управление магазином</span>
+  </button>
+
+
+
+
+
+     
+</section>
+
+    </section>
+
+
+
+    <!-- =========================
+         КАТАЛОГ
+    ========================== -->
+
+    <section id="stockSection">
+
+
+      <section class="hero">
+
+        <div>
+
+          <div class="eyebrow">
+            АКТУАЛЬНОЕ НАЛИЧИЕ
+          </div>
+
+          <h2>
+            Одежда и обувь
+          </h2>
+
+          <p>
+            Выбирай товар, размер и оформляй заказ прямо в приложении.
+          </p>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- =========================
+           ПОИСК И ФИЛЬТРЫ
+      ========================== -->
+
+      <section class="controls">
+
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="Поиск по бренду или названию"
+        >
+
+
+        <div
+          id="categoryTabs"
+          class="tabs"
+        ></div>
+
+
+        <div class="filter-grid">
+
+          <select id="brandFilter">
+
+            <option value="Все">
+              Все бренды
+            </option>
+
+          </select>
+
+
+          <select id="sizeFilter">
+
+            <option value="Все">
+              Все размеры
+            </option>
+
+          </select>
+
+
+          <input
+            id="minPriceFilter"
+            type="number"
+            min="0"
+            placeholder="Цена от"
+          >
+
+
+          <input
+            id="maxPriceFilter"
+            type="number"
+            min="0"
+            placeholder="Цена до"
+          >
+
+        </div>
+
+
+        <button
+          id="resetFiltersBtn"
+          class="reset-filters-btn"
+          type="button"
+        >
+          Сбросить фильтры
+        </button>
+
+      </section>
+
+
+
+      <!-- =========================
+           ТОВАРЫ
+      ========================== -->
+
+      <section>
+
+        <div class="section-head">
+
+          <div>
+
+            <h3 id="catalogTitle">
+              В наличии
+            </h3>
+
+            <p
+              id="resultCount"
+              class="muted"
+            ></p>
+
+          </div>
+
+
+          <select id="sortSelect">
+
+            <option value="newest">
+              Сначала новые
+            </option>
+
+            <option value="priceAsc">
+              Цена ↑
+            </option>
+
+            <option value="priceDesc">
+              Цена ↓
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div
+          id="productGrid"
+          class="product-grid"
+        ></div>
+
+      </section>
+
+    </section>
+
+
+
+    <!-- =========================
+         POIZON
+    ========================== -->
+<!-- =========================
+     ПОД ЗАКАЗ
+========================= -->
+
+<section id="customOrderSection" class="custom-order-section hidden">
+
+  <div class="custom-order-card">
+
+    <div class="eyebrow">KAMKA ORDER</div>
+
+    <h2>Найти вещь под заказ</h2>
+
+    <p class="muted">
+      Отправь ссылку на нужную вещь или напиши её название.
+      Мы найдём подходящий вариант и свяжемся с тобой.
+    </p>
+
+    <label>
+      Название товара
+
+      <input
+        id="customOrderProductName"
+        type="text"
+        placeholder="Например, Maison Margiela Replica"
+      >
+    </label>
+
+    <label>
+      Ссылка на товар
+
+      <input
+        id="customOrderUrl"
+        type="url"
+        placeholder="https://..."
+      >
+    </label>
+
+    <label>
+      Нужный размер
+
+      <input
+        id="customOrderSize"
+        type="text"
+        placeholder="Например, 42 или M"
+      >
+    </label>
+
+    <label>
+      Комментарий
+
+      <textarea
+        id="customOrderComment"
+        rows="4"
+        placeholder="Цвет, бюджет или другие пожелания"
+      ></textarea>
+    </label>
+<label>
+  Ваш Telegram
+
+  <input
+    id="customOrderTelegram"
+    type="text"
+    placeholder="@username"
+    autocomplete="off"
+  >
+</label>
+    <button
+      id="customOrderSubmit"
+      class="primary-btn"
+      type="button"
+    >
+      Отправить заявку
+    </button>
+
+    <p
+      id="customOrderStatus"
+      class="muted"
+    ></p>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     МОИ ЗАКАЗЫ
+========================= -->
+
+<section id="myOrdersSection" class="my-orders-section hidden">
+
+  <div class="my-orders-card">
+
+    <div class="eyebrow">ЛИЧНЫЙ КАБИНЕТ</div>
+
+    <h2>Мои заказы</h2>
+
+    <p class="muted">
+      Здесь отображаются твои заявки и их текущий статус.
+    </p>
+
+    <div
+      id="myOrdersList"
+      class="my-orders-list"
+    >
+      <div class="empty">
+        Загрузка...
+      </div>
+    </div>
+
+    <button
+      id="refreshMyOrders"
+      class="secondary-btn full-width-btn"
+      type="button"
+    >
+      Обновить
+    </button>
+
+    <p
+      id="myOrdersStatus"
+      class="muted"
+    ></p>
+
+  </div>
+
+</section>
+    <section
+      id="poizonSection"
+      class="poizon-section hidden"
+    >
+
+      <div class="poizon-card">
+
+        <div class="eyebrow">
+          ЗАКАЗ С POIZON
+        </div>
+
+        <h2>
+          Калькулятор стоимости
+        </h2>
+
+        <p class="muted">
+          Рассчитайте примерную стоимость заказа
+        </p>
+
+
+        <label>
+
+          Стоимость товара в ¥
+
+          <input
+            id="poizonPrice"
+            type="number"
+            min="0"
+            placeholder="Например, 1200"
+          >
+
+        </label>
+
+
+        <label>
+
+          Ориентировочный вес, кг
+
+          <input
+            id="poizonWeight"
+            type="number"
+            min="0"
+            step="0.1"
+            placeholder="Например, 1.2"
+          >
+
+        </label>
+
+
+
+        <div class="delivery-block">
+
+          <div class="delivery-label">
+            Способ доставки
+          </div>
+
+
+          <div class="delivery-options">
+
+            <button
+              type="button"
+              class="delivery-option active"
+              data-rate="850"
+              data-name="Авто"
+            >
+
+              <span class="delivery-name">
+                Авто
+              </span>
+
+              <span class="delivery-time">
+                20–30 дней
+              </span>
+
+            </button>
+
+
+            <button
+              type="button"
+              class="delivery-option"
+              data-rate="2500"
+              data-name="Авиа"
+            >
+
+              <span class="delivery-name">
+                Авиа
+              </span>
+
+              <span class="delivery-time">
+                1–3 дня
+              </span>
+
+            </button>
+
+          </div>
+
+
+          <input
+            id="poizonDelivery"
+            type="hidden"
+            value="850"
+          >
+
+        </div>
+
+
+
+        <div class="poizon-result">
+
+          <div class="poizon-final">
+
+            Итоговая стоимость:
+
+            <strong id="poizonFinalTotal">
+              0 ₽
+            </strong>
+
+          </div>
+
+        </div>
+
+
+
+        <p class="poizon-note">
+          Итоговая стоимость является ориентировочной и может измениться после уточнения фактического веса товара.
+        </p>
+
+
+        <label>
+
+          Ваш Telegram
+
+          <input
+            id="poizonTelegram"
+            type="text"
+            placeholder="@username"
+          >
+
+        </label>
+
+
+        <button
+          id="poizonOrderButton"
+          class="primary-btn"
+          type="button"
+        >
+          Оформить заказ
+        </button>
+
+
+        <p
+          id="poizonOrderStatus"
+          class="muted"
+        ></p>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         АДМИН-ПАНЕЛЬ
+    ========================== -->
 <section id="adminSection" class="admin-section hidden">
 
   <!-- другие блоки админки -->
@@ -633,6 +1221,558 @@
   >
     Опубликовать в @kamkastore
   </button>
+
+  <p
+    id="channelPostStatus"
+    class="muted"
+  ></p>
+
+</div>
+    <section
+      id="adminSection"
+      class="admin-section hidden"
+      <div class="admin-card admin-orders-card">
+
+  <div class="eyebrow">ЗАКАЗЫ</div>
+
+  <div class="admin-orders-head">
+    <div>
+      <h2>Заявки клиентов</h2>
+      <p class="muted">
+        Управление заказами и их статусами
+      </p>
+    </div>
+
+    <button
+      id="refreshAdminOrdersBtn"
+      class="secondary-btn"
+      type="button"
+    >
+      Обновить
+    </button>
+  </div>
+
+  <div class="admin-order-tabs">
+
+    <button
+      id="adminOrdersActiveTab"
+      class="tab active"
+      type="button"
+    >
+      Активные
+    </button>
+
+    <button
+      id="adminOrdersCompletedTab"
+      class="tab"
+      type="button"
+    >
+      Завершённые
+    </button>
+
+  </div>
+
+  <p
+    id="adminOrdersStatus"
+    class="muted"
+  ></p>
+
+  <div
+    id="adminOrdersList"
+    class="admin-orders-list"
+  ></div>
+
+</div>
+    >
+
+      <div class="admin-layout">
+<div class="admin-card stats-card">
+  <div class="eyebrow">АНАЛИТИКА</div>
+  <h2>Статистика магазина</h2>
+
+  <div class="stats-grid">
+
+    <div class="stat-box">
+      <span class="stat-label">Сегодня</span>
+      <strong id="statsTodayUsers">—</strong>
+      <span id="statsTodayVisits" class="stat-sub">— открытий</span>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">7 дней</span>
+      <strong id="stats7Users">—</strong>
+      <span id="stats7Visits" class="stat-sub">— открытий</span>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">30 дней</span>
+      <strong id="stats30Users">—</strong>
+      <span id="stats30Visits" class="stat-sub">— открытий</span>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">За всё время</span>
+      <strong id="statsAllUsers">—</strong>
+      <span id="statsAllVisits" class="stat-sub">— открытий</span>
+    </div>
+
+  </div>
+
+  <p id="statsStatus" class="muted"></p>
+</div>
+
+        <!-- =========================
+             ДОБАВИТЬ ТОВАР
+        ========================== -->
+
+        <div class="admin-card">
+
+          <div class="eyebrow">
+            АДМИН-ПАНЕЛЬ
+          </div>
+
+          <h2>
+            Добавить товар
+          </h2>
+
+
+          <label>
+
+            Бренд
+
+            <input
+              id="adminBrand"
+              type="text"
+              placeholder="Stone Island"
+            >
+
+          </label>
+
+
+          <label>
+
+            Название
+
+            <input
+              id="adminName"
+              type="text"
+              placeholder="Stone Island Sweatshirt"
+            >
+
+          </label>
+
+
+          <label>
+
+            Категория
+
+            <select id="adminCategory">
+
+              <option value="Одежда">
+                Одежда
+              </option>
+
+              <option value="Обувь">
+                Обувь
+              </option>
+
+              <option value="Другое">
+                Другое
+              </option>
+
+            </select>
+
+          </label>
+
+
+          <label>
+
+            Цена, ₽
+
+            <input
+              id="adminPrice"
+              type="number"
+              min="0"
+              placeholder="12990"
+            >
+
+          </label>
+
+
+          <label>
+
+            Описание
+
+            <textarea
+              id="adminDescription"
+              rows="5"
+              placeholder="Описание товара"
+            ></textarea>
+
+          </label>
+
+
+
+          <!-- РАЗМЕРЫ -->
+
+          <div class="admin-variants-block">
+
+            <div class="muted admin-label">
+              Размеры и количество
+            </div>
+
+
+            <div id="adminVariants">
+
+              <div class="admin-variant-row">
+
+                <input
+                  class="adminVariantSize"
+                  type="text"
+                  placeholder="Размер, например M"
+                >
+
+
+                <input
+                  class="adminVariantStock"
+                  type="number"
+                  min="1"
+                  value="1"
+                  placeholder="Количество"
+                >
+
+              </div>
+
+            </div>
+
+
+            <button
+              id="addVariantBtn"
+              type="button"
+              class="secondary-btn"
+            >
+              + Добавить размер
+            </button>
+
+          </div>
+
+
+
+          <!-- ФОТО -->
+
+          <label>
+
+            Фотографии — до 5 шт.
+
+            <input
+              id="adminImages"
+              type="file"
+              accept="image/*"
+              multiple
+            >
+
+          </label>
+
+
+          <div
+            id="adminImagePreview"
+            class="admin-image-preview"
+          ></div>
+
+
+          <button
+            id="adminAddProductBtn"
+            class="primary-btn"
+            type="button"
+          >
+            Добавить товар
+          </button>
+
+
+          <p
+            id="adminStatus"
+            class="muted"
+          ></p>
+
+        </div>
+
+
+
+        <!-- =========================
+             УПРАВЛЕНИЕ ТОВАРАМИ
+        ========================== -->
+
+        <div class="admin-card admin-management-card">
+
+
+          <div class="admin-list-head">
+
+            <div>
+
+              <div class="eyebrow">
+                УПРАВЛЕНИЕ
+              </div>
+
+              <h2>
+                Товары
+              </h2>
+
+            </div>
+
+
+            <button
+              id="refreshAdminProductsBtn"
+              class="secondary-btn"
+              type="button"
+            >
+              Обновить
+            </button>
+
+          </div>
+
+
+
+          <!-- АКТИВНЫЕ / СКРЫТЫЕ -->
+
+          <div class="admin-tabs">
+
+            <button
+              id="adminActiveTab"
+              class="admin-tab active"
+              type="button"
+            >
+              Активные
+
+              <span id="adminActiveCount">
+                0
+              </span>
+            </button>
+
+
+            <button
+              id="adminHiddenTab"
+              class="admin-tab"
+              type="button"
+            >
+              Скрытые
+
+              <span id="adminHiddenCount">
+                0
+              </span>
+            </button>
+
+          </div>
+
+
+
+          <input
+            id="adminProductSearch"
+            class="admin-search"
+            type="search"
+            placeholder="Поиск по бренду или названию"
+          >
+
+
+          <div
+            id="adminProductList"
+            class="admin-product-list"
+          ></div>
+
+
+          <p
+            id="adminListStatus"
+            class="muted"
+          ></p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =========================
+       BACKDROP
+  ========================== -->
+
+  <div
+    id="sheetBackdrop"
+    class="backdrop hidden"
+  ></div>
+
+
+
+  <!-- =========================
+       КАРТОЧКА ТОВАРА
+  ========================== -->
+
+  <section
+    id="productSheet"
+    class="sheet hidden"
+    aria-modal="true"
+    role="dialog"
+  >
+
+    <div class="sheet-handle"></div>
+
+
+    <button
+      id="closeProductSheet"
+      class="close-btn"
+      type="button"
+    >
+      Закрыть
+    </button>
+
+
+    <div id="productSheetContent"></div>
+
+  </section>
+
+
+
+  <!-- =========================
+       КОРЗИНА
+  ========================== -->
+
+  <section
+    id="cartSheet"
+    class="sheet hidden"
+    aria-modal="true"
+    role="dialog"
+  >
+
+    <div class="sheet-handle"></div>
+
+
+    <div class="sheet-head">
+
+      <h3>
+        Корзина
+      </h3>
+
+
+      <button
+        id="closeCartSheet"
+        class="close-btn"
+        type="button"
+      >
+        Закрыть
+      </button>
+
+    </div>
+
+
+    <div
+      id="cartItems"
+      class="cart-list"
+    ></div>
+
+
+    <div class="cart-total-row">
+
+      <span>
+        Итого
+      </span>
+
+      <strong id="cartTotal">
+        0 ₽
+      </strong>
+
+    </div>
+
+
+    <button
+      id="checkoutButton"
+      class="primary-btn"
+      type="button"
+    >
+      Оформить заказ
+    </button>
+
+  </section>
+
+
+
+  <!-- =========================
+       ОФОРМЛЕНИЕ
+  ========================== -->
+
+  <section
+    id="checkoutSheet"
+    class="sheet hidden"
+    aria-modal="true"
+    role="dialog"
+  >
+
+    <div class="sheet-handle"></div>
+
+
+    <div class="sheet-head">
+
+      <h3>
+        Оформление
+      </h3>
+
+
+      <button
+        id="closeCheckoutSheet"
+        class="close-btn"
+        type="button"
+      >
+        Закрыть
+      </button>
+
+    </div>
+
+
+    <form
+      id="checkoutForm"
+      class="form-grid"
+    >
+
+      <label>
+
+        Ваш Telegram
+
+        <input
+          id="stockTelegram"
+          type="text"
+          placeholder="@username"
+          required
+        >
+
+      </label>
+
+
+      <button
+        class="primary-btn"
+        type="submit"
+      >
+        Отправить заявку
+      </button>
+
+
+      <p
+        id="checkoutStatus"
+        class="muted"
+      ></p>
+
+    </form>
+
+  </section>
+
+
+
+<script type="module" src="./app.js?v=21"></script>
+
+</body>
+
+</html>
+
 
   <p
     id="channelPostStatus"

@@ -4553,7 +4553,476 @@ function fillTelegramContact(
       `@${username}`;
   }
 }
+// =========================
+// ADMIN ORDERS
+// =========================
 
+let adminOrders = [];
+let adminOrdersMode = 'active';
+
+const ADMIN_ORDER_STATUSES = {
+  new: 'Заявка отправлена',
+  contacted: 'Связались с вами',
+  purchased: 'Выкуплено',
+  shipping: 'В пути',
+  received: 'Получено',
+  completed: 'Завершено',
+  cancelled: 'Отменено'
+};
+
+
+async function customerOrdersRequest(payload) {
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/customer-orders`,
+    {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      },
+
+      body: JSON.stringify({
+        init_data: tg?.initData || '',
+        ...payload
+      })
+    }
+  );
+
+  const text =
+    await response.text();
+
+  let data = {};
+
+  try {
+    data =
+      text
+        ? JSON.parse(text)
+        : {};
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data.error ||
+      text ||
+      `Ошибка ${response.status}`
+    );
+  }
+
+  return data;
+}
+
+
+async function loadAdminOrders() {
+  if (!isAdmin) return;
+
+  const status =
+    el('adminOrdersStatus');
+
+  const list =
+    el('adminOrdersList');
+
+  if (!list) return;
+
+  if (status) {
+    status.textContent =
+      'Загружаем заявки...';
+  }
+
+  list.innerHTML =
+    '<div class="empty">Загрузка...</div>';
+
+  try {
+    const data =
+      await customerOrdersRequest({
+        action: 'admin_list'
+      });
+
+    adminOrders =
+      Array.isArray(data.orders)
+        ? data.orders
+        : [];
+
+    if (status) {
+      status.textContent = '';
+    }
+
+    renderAdminOrders();
+
+  } catch (error) {
+    console.error(error);
+
+    list.innerHTML =
+      '<div class="empty">Не удалось загрузить заявки.</div>';
+
+    if (status) {
+      status.textContent =
+        error instanceof Error
+          ? error.message
+          : 'Ошибка загрузки';
+    }
+  }
+}
+
+
+function renderAdminOrders() {
+  const list =
+    el('adminOrdersList');
+
+  if (!list) return;
+
+  const filtered =
+    adminOrders.filter(
+      order => {
+        if (
+          adminOrdersMode === 'completed'
+        ) {
+          return (
+            order.status === 'completed' ||
+            order.status === 'cancelled'
+          );
+        }
+
+        return (
+          order.status !== 'completed' &&
+          order.status !== 'cancelled'
+        );
+      }
+    );
+
+  list.innerHTML = '';
+
+  if (!filtered.length) {
+    list.innerHTML =
+      `<div class="empty">
+        ${
+          adminOrdersMode === 'active'
+            ? 'Активных заявок нет'
+            : 'Завершённых заявок нет'
+        }
+      </div>`;
+
+    return;
+  }
+
+  filtered.forEach(
+    order => {
+      const card =
+        document.createElement(
+          'div'
+        );
+
+      card.className =
+        'admin-order-item';
+
+      const title =
+        order.product_name ||
+        'Товар под заказ';
+
+      const username =
+        order.telegram_username
+          ? (
+              String(
+                order.telegram_username
+              ).startsWith('@')
+                ? order.telegram_username
+                : `@${order.telegram_username}`
+            )
+          : '';
+
+      const date =
+        order.created_at
+          ? new Date(
+              order.created_at
+            ).toLocaleDateString(
+              'ru-RU'
+            )
+          : '';
+
+      const options =
+        Object.entries(
+          ADMIN_ORDER_STATUSES
+        )
+        .map(
+          ([value, label]) => `
+            <option
+              value="${value}"
+              ${
+                value === order.status
+                  ? 'selected'
+                  : ''
+              }
+            >
+              ${escapeHtml(label)}
+            </option>
+          `
+        )
+        .join('');
+
+      card.innerHTML = `
+
+        <div class="admin-order-top">
+
+          <span class="admin-order-number">
+            Заказ №${order.id}
+          </span>
+
+          <span class="admin-order-date">
+            ${escapeHtml(date)}
+          </span>
+
+        </div>
+
+        <strong class="admin-order-title">
+          ${escapeHtml(title)}
+        </strong>
+
+        <div class="admin-order-meta">
+
+          ${
+            order.size
+              ? `
+                <div>
+                  Размер:
+                  <strong>
+                    ${escapeHtml(order.size)}
+                  </strong>
+                </div>
+              `
+              : ''
+          }
+
+          ${
+            username
+              ? `
+                <div>
+                  Клиент:
+                  <strong>
+                    ${escapeHtml(username)}
+                  </strong>
+                </div>
+              `
+              : ''
+          }
+
+          ${
+            order.product_url
+              ? `
+                <div>
+                  <a
+                    href="${escapeHtml(order.product_url)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Открыть ссылку на товар
+                  </a>
+                </div>
+              `
+              : ''
+          }
+
+        </div>
+
+        ${
+          order.comment
+            ? `
+              <div class="admin-order-comment">
+                ${escapeHtml(order.comment)}
+              </div>
+            `
+            : ''
+        }
+
+        <div class="admin-order-actions">
+
+          <select
+            class="admin-order-status-select"
+            data-order-id="${order.id}"
+          >
+            ${options}
+          </select>
+
+          ${
+            username
+              ? `
+                <button
+                  class="secondary-btn admin-order-contact-btn"
+                  type="button"
+                  data-username="${escapeHtml(username)}"
+                >
+                  Написать клиенту
+                </button>
+              `
+              : ''
+          }
+
+        </div>
+      `;
+
+
+      card
+        .querySelector(
+          '.admin-order-status-select'
+        )
+        ?.addEventListener(
+          'change',
+          async event => {
+            const select =
+              event.currentTarget;
+
+            const newStatus =
+              select.value;
+
+            const oldStatus =
+              order.status;
+
+            select.disabled =
+              true;
+
+            try {
+              const data =
+                await customerOrdersRequest({
+                  action:
+                    'update_status',
+
+                  order_id:
+                    order.id,
+
+                  status:
+                    newStatus
+                });
+
+              if (data.order) {
+                Object.assign(
+                  order,
+                  data.order
+                );
+              } else {
+                order.status =
+                  newStatus;
+              }
+
+              renderAdminOrders();
+
+            } catch (error) {
+              console.error(error);
+
+              order.status =
+                oldStatus;
+
+              select.value =
+                oldStatus;
+
+              alert(
+                error instanceof Error
+                  ? error.message
+                  : 'Не удалось изменить статус'
+              );
+
+              select.disabled =
+                false;
+            }
+          }
+        );
+
+
+      card
+        .querySelector(
+          '.admin-order-contact-btn'
+        )
+        ?.addEventListener(
+          'click',
+          event => {
+            const username =
+              event.currentTarget.dataset.username;
+
+            if (!username) return;
+
+            const cleanUsername =
+              username.replace(
+                /^@/,
+                ''
+              );
+
+            const url =
+              `https://t.me/${cleanUsername}`;
+
+            if (
+              tg?.openTelegramLink
+            ) {
+              tg.openTelegramLink(
+                url
+              );
+            } else {
+              window.open(
+                url,
+                '_blank'
+              );
+            }
+          }
+        );
+
+
+      list.appendChild(
+        card
+      );
+    }
+  );
+}
+
+
+function setAdminOrdersMode(
+  mode
+) {
+  adminOrdersMode =
+    mode;
+
+  el('adminOrdersActiveTab')
+    ?.classList
+    .toggle(
+      'active',
+      mode === 'active'
+    );
+
+  el('adminOrdersCompletedTab')
+    ?.classList
+    .toggle(
+      'active',
+      mode === 'completed'
+    );
+
+  renderAdminOrders();
+}
+
+
+el('adminOrdersActiveTab')
+  ?.addEventListener(
+    'click',
+    () =>
+      setAdminOrdersMode(
+        'active'
+      )
+  );
+
+
+el('adminOrdersCompletedTab')
+  ?.addEventListener(
+    'click',
+    () =>
+      setAdminOrdersMode(
+        'completed'
+      )
+  );
+
+
+el('refreshAdminOrdersBtn')
+  ?.addEventListener(
+    'click',
+    loadAdminOrders
+  );
 
 // =========================
 // START

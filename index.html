@@ -18,7 +18,7 @@
 
   <link
     rel="stylesheet"
-    href="./styles.css?v=6"
+    href="./styles.css?v=7"
   >
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -88,9 +88,25 @@
 
     <section class="service-menu">
 
+
+      <button
+        id="homeSectionBtn"
+        class="service-card active"
+        type="button"
+      >
+        <span class="service-title">
+          Главная
+        </span>
+
+        <span class="service-text">
+          Новинки, популярное и бренды
+        </span>
+      </button>
+
+
       <button
         id="stockSectionBtn"
-        class="service-card active"
+        class="service-card"
         type="button"
       >
         <span class="service-title">
@@ -134,6 +150,21 @@
 
 
       <button
+        id="cheaperSectionBtn"
+        class="service-card"
+        type="button"
+      >
+        <span class="service-title">
+          Найти дешевле
+        </span>
+
+        <span class="service-text">
+          Пришли ссылку — попробуем найти выгоднее
+        </span>
+      </button>
+
+
+      <button
         id="myOrdersSectionBtn"
         class="service-card"
         type="button"
@@ -144,6 +175,21 @@
 
         <span class="service-text">
           Посмотреть статус заказов
+        </span>
+      </button>
+
+
+      <button
+        id="accountSectionBtn"
+        class="service-card"
+        type="button"
+      >
+        <span class="service-title">
+          Кабинет
+        </span>
+
+        <span class="service-text">
+          Подписки, рефералы и бонусы
         </span>
       </button>
 
@@ -167,13 +213,262 @@
 
 
     <!-- =========================
+         ГЛАВНАЯ
+    ========================== -->
+
+    <section id="homeSection">
+
+
+      <section class="home-hero">
+
+        <div class="eyebrow home-hero-eyebrow">
+          KAMKA STORE
+        </div>
+
+        <h2>
+          Оригинальные вещи
+          в наличии и под заказ
+        </h2>
+
+        <p>
+          Европа, Китай, США.
+          Актуальное наличие и индивидуальный поиск.
+        </p>
+
+        <button
+          id="homeOpenStockBtn"
+          class="home-hero-btn"
+          type="button"
+        >
+          Смотреть наличие
+        </button>
+
+      </section>
+
+
+
+      <!-- НОВИНКИ -->
+
+      <section class="home-section-block">
+
+        <div class="home-section-head">
+
+          <div>
+            <div class="eyebrow">
+              НОВЫЕ ПОСТУПЛЕНИЯ
+            </div>
+
+            <h3>
+              Новинки
+            </h3>
+          </div>
+
+
+          <button
+            id="homeAllProductsBtn"
+            class="text-btn"
+            type="button"
+          >
+            Все товары
+          </button>
+
+        </div>
+
+
+        <div
+          id="homeNewProducts"
+          class="home-product-row"
+        ></div>
+
+      </section>
+
+
+
+      <!-- ПОПУЛЯРНОЕ -->
+
+      <section class="home-section-block">
+
+        <div class="home-section-head">
+
+          <div>
+            <div class="eyebrow">
+              ЧАЩЕ ВСЕГО СМОТРЯТ
+            </div>
+
+            <h3>
+              Популярное
+            </h3>
+          </div>
+
+        </div>
+
+
+        <div
+          id="homePopularProducts"
+          class="home-product-row"
+        ></div>
+
+      </section>
+
+
+
+      <!-- БРЕНДЫ -->
+
+      <section class="home-section-block">
+
+        <div class="home-section-head">
+
+          <div>
+            <div class="eyebrow">
+              КАТАЛОГ
+            </div>
+
+            <h3>
+              Бренды
+            </h3>
+          </div>
+
+        </div>
+
+
+        <div
+          id="homeBrands"
+          class="home-brands"
+        ></div>
+
+      </section>
+
+
+
+      <!-- БЫСТРЫЕ ДЕЙСТВИЯ -->
+
+      <section class="home-section-block">
+
+        <div class="home-section-head">
+
+          <div>
+            <div class="eyebrow">
+              СЕРВИСЫ
+            </div>
+
+            <h3>
+              Что нужно найти?
+            </h3>
+          </div>
+
+        </div>
+
+
+        <div class="home-actions-grid">
+
+          <button
+            id="homeCustomOrderBtn"
+            class="home-action-card"
+            type="button"
+          >
+            <strong>
+              Под заказ
+            </strong>
+
+            <span>
+              Найдём конкретную вещь
+            </span>
+          </button>
+
+
+          <button
+            id="homePoizonBtn"
+            class="home-action-card"
+            type="button"
+          >
+            <strong>
+              Poizon
+            </strong>
+
+            <span>
+              Рассчитать стоимость
+            </span>
+          </button>
+
+
+          <button
+            id="homeCheaperBtn"
+            class="home-action-card"
+            type="button"
+          >
+            <strong>
+              Найти дешевле
+            </strong>
+
+            <span>
+              Проверим другие источники
+            </span>
+          </button>
+
+
+          <button
+            id="homeReferralBtn"
+            class="home-action-card"
+            type="button"
+          >
+            <strong>
+              Пригласить друга
+            </strong>
+
+            <span>
+              Получить реферальную ссылку
+            </span>
+          </button>
+
+        </div>
+
+      </section>
+
+
+
+      <!-- ОТЗЫВЫ -->
+
+      <section class="home-section-block">
+
+        <div class="home-section-head">
+
+          <div>
+            <div class="eyebrow">
+              ПОКУПАТЕЛИ
+            </div>
+
+            <h3>
+              Отзывы
+            </h3>
+          </div>
+
+        </div>
+
+
+        <div
+          id="homeReviews"
+          class="home-reviews"
+        >
+          <div class="empty">
+            Загружаем отзывы...
+          </div>
+        </div>
+
+      </section>
+
+    </section>
+
+
+
+    <!-- =========================
          В НАЛИЧИИ
     ========================== -->
 
-    <section id="stockSection">
+    <section
+      id="stockSection"
+      class="hidden"
+    >
 
-
-      <!-- HERO -->
 
       <section class="hero">
 
@@ -197,7 +492,7 @@
 
 
 
-      <!-- ПОИСК И ФИЛЬТРЫ -->
+      <!-- ПОИСК -->
 
       <section class="controls">
 
@@ -263,8 +558,6 @@
       </section>
 
 
-
-      <!-- ТОВАРЫ -->
 
       <section>
 
@@ -406,6 +699,123 @@
 
         <p
           id="customOrderStatus"
+          class="muted"
+        ></p>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         НАЙТИ ДЕШЕВЛЕ
+    ========================== -->
+
+    <section
+      id="cheaperSection"
+      class="custom-order-section hidden"
+    >
+
+      <div class="custom-order-card">
+
+        <div class="eyebrow">
+          KAMKA PRICE CHECK
+        </div>
+
+        <h2>
+          Найти дешевле
+        </h2>
+
+        <p class="muted">
+          Пришли ссылку на товар из другого магазина.
+          Мы проверим наши источники и попробуем найти выгоднее.
+        </p>
+
+
+        <label>
+          Ссылка на товар
+
+          <input
+            id="cheaperProductUrl"
+            type="url"
+            placeholder="https://..."
+          >
+        </label>
+
+
+        <label>
+          Название товара
+
+          <input
+            id="cheaperProductName"
+            type="text"
+            placeholder="Например, Stone Island Sweatshirt"
+          >
+        </label>
+
+
+        <label>
+          Размер
+
+          <input
+            id="cheaperSize"
+            type="text"
+            placeholder="Например, M или 42"
+          >
+        </label>
+
+
+        <div class="two-field-grid">
+
+          <label>
+            Цена сейчас, ₽
+
+            <input
+              id="cheaperCurrentPrice"
+              type="number"
+              min="0"
+              placeholder="25000"
+            >
+          </label>
+
+
+          <label>
+            Желаемая цена, ₽
+
+            <input
+              id="cheaperDesiredPrice"
+              type="number"
+              min="0"
+              placeholder="20000"
+            >
+          </label>
+
+        </div>
+
+
+        <label>
+          Комментарий
+
+          <textarea
+            id="cheaperComment"
+            rows="4"
+            placeholder="Цвет, состояние или другие пожелания"
+          ></textarea>
+        </label>
+
+
+        <button
+          id="cheaperSubmitBtn"
+          class="primary-btn"
+          type="button"
+        >
+          Отправить заявку
+        </button>
+
+
+        <p
+          id="cheaperStatus"
           class="muted"
         ></p>
 
@@ -623,7 +1033,159 @@
 
 
     <!-- =========================
-         АДМИН-ПАНЕЛЬ
+         КАБИНЕТ
+    ========================== -->
+
+    <section
+      id="accountSection"
+      class="account-section hidden"
+    >
+
+
+      <!-- ПОДПИСКИ -->
+
+      <div class="account-card">
+
+        <div class="eyebrow">
+          УВЕДОМЛЕНИЯ
+        </div>
+
+        <h2>
+          Подписки на бренды
+        </h2>
+
+        <p class="muted">
+          Подпишись на любимый бренд — бот сообщит о новом поступлении.
+        </p>
+
+
+        <div
+          id="brandSubscriptionsList"
+          class="brand-subscriptions-list"
+        >
+          <div class="empty">
+            Загрузка...
+          </div>
+        </div>
+
+
+        <p
+          id="brandSubscriptionsStatus"
+          class="muted"
+        ></p>
+
+      </div>
+
+
+
+      <!-- РЕФЕРАЛЫ -->
+
+      <div class="account-card">
+
+        <div class="eyebrow">
+          ПРИГЛАСИ ДРУГА
+        </div>
+
+        <h2>
+          Реферальная ссылка
+        </h2>
+
+        <p class="muted">
+          Отправь персональную ссылку друзьям.
+          Приглашения будут учитываться автоматически.
+        </p>
+
+
+        <div class="referral-box">
+
+          <div class="referral-label">
+            Твоя ссылка
+          </div>
+
+          <div
+            id="referralLink"
+            class="referral-link"
+          >
+            Загружаем...
+          </div>
+
+
+          <button
+            id="copyReferralBtn"
+            class="primary-btn"
+            type="button"
+          >
+            Скопировать ссылку
+          </button>
+
+
+          <button
+            id="shareReferralBtn"
+            class="secondary-btn full-width-btn"
+            type="button"
+          >
+            Поделиться
+          </button>
+
+        </div>
+
+
+        <div class="referral-stats">
+
+          <div class="referral-stat">
+
+            <span>
+              Приглашено
+            </span>
+
+            <strong id="referralInvited">
+              0
+            </strong>
+
+          </div>
+
+
+          <div class="referral-stat">
+
+            <span>
+              Сделали заказ
+            </span>
+
+            <strong id="referralOrdered">
+              0
+            </strong>
+
+          </div>
+
+
+          <div class="referral-stat">
+
+            <span>
+              Награждено
+            </span>
+
+            <strong id="referralRewarded">
+              0
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <p
+          id="referralStatus"
+          class="muted"
+        ></p>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         АДМИН
     ========================== -->
 
     <section
@@ -634,9 +1196,8 @@
       <div class="admin-layout">
 
 
-        <!-- =========================
-             АНАЛИТИКА
-        ========================== -->
+
+        <!-- АНАЛИТИКА -->
 
         <div class="admin-card stats-card">
 
@@ -652,7 +1213,6 @@
           <div class="stats-grid">
 
             <div class="stat-box">
-
               <span class="stat-label">
                 Сегодня
               </span>
@@ -667,12 +1227,10 @@
               >
                 — открытий
               </span>
-
             </div>
 
 
             <div class="stat-box">
-
               <span class="stat-label">
                 7 дней
               </span>
@@ -687,12 +1245,10 @@
               >
                 — открытий
               </span>
-
             </div>
 
 
             <div class="stat-box">
-
               <span class="stat-label">
                 30 дней
               </span>
@@ -707,12 +1263,10 @@
               >
                 — открытий
               </span>
-
             </div>
 
 
             <div class="stat-box">
-
               <span class="stat-label">
                 За всё время
               </span>
@@ -727,7 +1281,6 @@
               >
                 — открытий
               </span>
-
             </div>
 
           </div>
@@ -742,9 +1295,57 @@
 
 
 
-        <!-- =========================
-             ЗАЯВКИ КЛИЕНТОВ
-        ========================== -->
+        <!-- ПРОСМОТРЫ ТОВАРОВ -->
+
+        <div class="admin-card">
+
+          <div class="admin-list-head">
+
+            <div>
+
+              <div class="eyebrow">
+                ИНТЕРЕС
+              </div>
+
+              <h2>
+                Популярные товары
+              </h2>
+
+            </div>
+
+
+            <button
+              id="refreshProductStatsBtn"
+              class="secondary-btn"
+              type="button"
+            >
+              Обновить
+            </button>
+
+          </div>
+
+
+          <p class="muted">
+            Просмотры карточек и уникальные пользователи.
+          </p>
+
+
+          <div
+            id="adminProductStatsList"
+            class="admin-product-stats-list"
+          ></div>
+
+
+          <p
+            id="adminProductStatsStatus"
+            class="muted"
+          ></p>
+
+        </div>
+
+
+
+        <!-- ЗАЯВКИ -->
 
         <div class="admin-card admin-orders-card">
 
@@ -816,9 +1417,184 @@
 
 
 
-        <!-- =========================
-             ПУБЛИКАЦИЯ В КАНАЛ
-        ========================== -->
+        <!-- ОТЗЫВЫ -->
+
+        <div class="admin-card">
+
+          <div class="admin-list-head">
+
+            <div>
+
+              <div class="eyebrow">
+                МОДЕРАЦИЯ
+              </div>
+
+              <h2>
+                Отзывы
+              </h2>
+
+            </div>
+
+
+            <button
+              id="refreshAdminReviewsBtn"
+              class="secondary-btn"
+              type="button"
+            >
+              Обновить
+            </button>
+
+          </div>
+
+
+          <div
+            id="adminReviewsList"
+            class="admin-reviews-list"
+          ></div>
+
+
+          <p
+            id="adminReviewsStatus"
+            class="muted"
+          ></p>
+
+        </div>
+
+
+
+        <!-- ПРОМОКОДЫ -->
+
+        <div class="admin-card">
+
+          <div class="eyebrow">
+            ПРОМОКОДЫ
+          </div>
+
+          <h2>
+            Создать промокод
+          </h2>
+
+
+          <label>
+            Код
+
+            <input
+              id="promoAdminCode"
+              type="text"
+              placeholder="KAMKA10"
+            >
+          </label>
+
+
+          <label>
+            Тип скидки
+
+            <select id="promoAdminType">
+
+              <option value="percent">
+                Процент
+              </option>
+
+              <option value="fixed">
+                Фиксированная сумма
+              </option>
+
+            </select>
+          </label>
+
+
+          <label>
+            Размер скидки
+
+            <input
+              id="promoAdminValue"
+              type="number"
+              min="1"
+              placeholder="10"
+            >
+          </label>
+
+
+          <label>
+            Минимальная сумма заказа
+
+            <input
+              id="promoAdminMinAmount"
+              type="number"
+              min="0"
+              value="0"
+            >
+          </label>
+
+
+          <label>
+            Максимум использований
+
+            <input
+              id="promoAdminMaxUses"
+              type="number"
+              min="1"
+              placeholder="Без ограничения"
+            >
+          </label>
+
+
+          <label>
+            Действует до
+
+            <input
+              id="promoAdminExpires"
+              type="datetime-local"
+            >
+          </label>
+
+
+          <button
+            id="createPromoBtn"
+            class="primary-btn"
+            type="button"
+          >
+            Создать промокод
+          </button>
+
+
+          <p
+            id="promoAdminStatus"
+            class="muted"
+          ></p>
+
+
+          <div class="admin-divider"></div>
+
+
+          <div class="admin-list-head">
+
+            <h3>
+              Промокоды
+            </h3>
+
+
+            <button
+              id="refreshPromoCodesBtn"
+              class="secondary-btn"
+              type="button"
+            >
+              Обновить
+            </button>
+
+          </div>
+
+
+          <div
+            id="promoCodesList"
+            class="promo-codes-list"
+          ></div>
+
+        </div>
+
+
+
+        <!-- ПУБЛИКАЦИЯ -->
 
         <div class="admin-card channel-post-card">
 
@@ -879,9 +1655,7 @@
 
 
 
-        <!-- =========================
-             ДОБАВИТЬ ТОВАР
-        ========================== -->
+        <!-- ДОБАВИТЬ ТОВАР -->
 
         <div class="admin-card">
 
@@ -934,7 +1708,6 @@
               </option>
 
             </select>
-
           </label>
 
 
@@ -961,8 +1734,6 @@
           </label>
 
 
-
-          <!-- РАЗМЕРЫ -->
 
           <div class="admin-variants-block">
 
@@ -1006,8 +1777,6 @@
 
 
 
-          <!-- ФОТО -->
-
           <label>
             Фотографии — до 5 шт.
 
@@ -1044,9 +1813,7 @@
 
 
 
-        <!-- =========================
-             УПРАВЛЕНИЕ ТОВАРАМИ
-        ========================== -->
+        <!-- ТОВАРЫ -->
 
         <div class="admin-card admin-management-card">
 
@@ -1075,7 +1842,6 @@
             </button>
 
           </div>
-
 
 
           <div class="admin-tabs">
@@ -1291,6 +2057,88 @@
       </label>
 
 
+
+      <!-- ПРОМОКОД -->
+
+      <div class="checkout-promo">
+
+        <label>
+          Промокод
+
+          <input
+            id="checkoutPromoCode"
+            type="text"
+            placeholder="KAMKA10"
+          >
+        </label>
+
+
+        <button
+          id="applyPromoBtn"
+          class="secondary-btn full-width-btn"
+          type="button"
+        >
+          Применить промокод
+        </button>
+
+
+        <p
+          id="promoStatus"
+          class="muted"
+        ></p>
+
+      </div>
+
+
+
+      <!-- ИТОГ -->
+
+      <div class="checkout-summary">
+
+        <div class="checkout-summary-row">
+
+          <span>
+            Товары
+          </span>
+
+          <strong id="checkoutSubtotal">
+            0 ₽
+          </strong>
+
+        </div>
+
+
+        <div
+          id="checkoutDiscountRow"
+          class="checkout-summary-row hidden"
+        >
+
+          <span>
+            Скидка
+          </span>
+
+          <strong id="checkoutDiscount">
+            −0 ₽
+          </strong>
+
+        </div>
+
+
+        <div class="checkout-summary-row checkout-final-row">
+
+          <span>
+            Итого
+          </span>
+
+          <strong id="checkoutFinalTotal">
+            0 ₽
+          </strong>
+
+        </div>
+
+      </div>
+
+
       <button
         class="primary-btn"
         type="submit"
@@ -1312,7 +2160,7 @@
 
   <script
     type="module"
-    src="./app.js?v=22"
+    src="./app.js?v=23"
   ></script>
 
 </body>

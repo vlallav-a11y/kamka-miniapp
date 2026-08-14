@@ -3280,19 +3280,10 @@ const ORDER_STATUSES = {
 
 
 async function loadMyOrders() {
-  const list =
-    el(
-      'myOrdersList'
-    );
+  const list = el('myOrdersList');
+  const status = el('myOrdersStatus');
 
-  const status =
-    el(
-      'myOrdersStatus'
-    );
-
-  if (!list) {
-    return;
-  }
+  if (!list) return;
 
   list.innerHTML =
     '<div class="empty">Загрузка...</div>';
@@ -3304,136 +3295,138 @@ async function loadMyOrders() {
   if (!tg?.initData) {
     list.innerHTML =
       '<div class="empty">Открой магазин через Telegram.</div>';
-
     return;
   }
 
   try {
-    const response =
-      await fetch(
-        `${SUPABASE_URL}/functions/v1/customer-orders`,
-        {
-          method:
-            'POST',
+    const response = await fetch(
+      `${SUPABASE_URL}/functions/v1/customer-orders`,
+      {
+        method: 'POST',
 
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+        },
 
-          body:
-            JSON.stringify({
-              action:
-                'my_orders',
+        body: JSON.stringify({
+          action: 'my_orders',
+          init_data: tg.initData
+        })
+      }
+    );
 
-              init_data:
-                tg.initData
-            })
-        }
-      );
+    const rawText =
+      await response.text();
 
-    const data =
-      await response.json();
+    let data = {};
+
+    try {
+      data =
+        rawText
+          ? JSON.parse(rawText)
+          : {};
+    } catch {
+      data = {};
+    }
 
     if (!response.ok) {
+      console.error(
+        'MY ORDERS ERROR',
+        response.status,
+        rawText
+      );
+
       throw new Error(
         data.error ||
-        'Не удалось загрузить заказы'
+        rawText ||
+        `Ошибка ${response.status}`
       );
     }
 
     const orders =
-      data.orders ||
-      [];
+      Array.isArray(data.orders)
+        ? data.orders
+        : [];
 
     if (!orders.length) {
       list.innerHTML =
         '<div class="empty">У тебя пока нет заказов.</div>';
-
       return;
     }
 
     list.innerHTML =
-      orders.map(
-        order => {
-          const title =
-            order.product_name ||
-            'Товар под заказ';
+      orders.map(order => {
+        const title =
+          order.product_name ||
+          'Товар под заказ';
 
-          const orderStatus =
-            ORDER_STATUSES[
-              order.status
-            ] ||
-            order.status;
+        const orderStatus =
+          ORDER_STATUSES[order.status] ||
+          order.status ||
+          'Без статуса';
 
-          const date =
-            new Date(
-              order.created_at
-            )
-            .toLocaleDateString(
-              'ru-RU'
-            );
+        const date =
+          order.created_at
+            ? new Date(order.created_at)
+                .toLocaleDateString('ru-RU')
+            : '';
 
-          return `
-            <div class="my-order-item">
+        return `
+          <div class="my-order-item">
 
-              <div class="my-order-top">
+            <div class="my-order-top">
 
-                <span class="my-order-number">
-                  Заказ №${order.id}
-                </span>
+              <span class="my-order-number">
+                Заказ №${order.id}
+              </span>
 
-                <span class="my-order-date">
-                  ${date}
-                </span>
-
-              </div>
-
-              <strong class="my-order-title">
-                ${escapeHtml(title)}
-              </strong>
-
-              ${
-                order.size
-
-                ? `
-                  <div class="my-order-size">
-                    Размер:
-                    ${escapeHtml(order.size)}
-                  </div>
-                `
-
-                : ''
-              }
-
-              <div class="my-order-status">
-                <span class="order-status-dot"></span>
-
-                ${escapeHtml(orderStatus)}
-              </div>
+              <span class="my-order-date">
+                ${escapeHtml(date)}
+              </span>
 
             </div>
-          `;
-        }
-      ).join('');
+
+            <strong class="my-order-title">
+              ${escapeHtml(title)}
+            </strong>
+
+            ${
+              order.size
+                ? `
+                  <div class="my-order-size">
+                    Размер: ${escapeHtml(order.size)}
+                  </div>
+                `
+                : ''
+            }
+
+            <div class="my-order-status">
+              <span class="order-status-dot"></span>
+              ${escapeHtml(orderStatus)}
+            </div>
+
+          </div>
+        `;
+      }).join('');
 
   } catch (error) {
     console.error(error);
 
-    list.innerHTML =
-  `<div class="empty">
-    ${escapeHtml(
+    const message =
       error instanceof Error
         ? error.message
-        : 'Не удалось загрузить заказы'
-    )}
-  </div>`;
+        : 'Неизвестная ошибка';
+
+    list.innerHTML =
+      `<div class="empty">
+        Ошибка: ${escapeHtml(message)}
+      </div>`;
 
     if (status) {
       status.textContent =
-        error instanceof Error
-          ? error.message
-          : 'Ошибка загрузки';
+        message;
     }
   }
 }
